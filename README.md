@@ -60,7 +60,7 @@ Pipeline de ML desplegado sobre **Microsoft Azure**: datos en Blob Storage, hist
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Crear el panel para operadores | Alejandro | ⚪ Pendiente |
+| Crear el panel para operadores | Marta | ⚪ Pendiente |
 | <sub>Power BI conectado a **Azure SQL** (`delivery_predictions`). Cada mañana muestra la lista de entregas del día ordenada de mayor a menor riesgo, con semáforo de colores y motivo del fallo en texto normal. Sin tecnicismos. Fichero: `dashboard/retailcore.pbix`</sub> | | |
 | ⭐ Añadir mapa de zonas de riesgo | Borja | ⚪ Pendiente |
 | <sub>Dentro del dashboard, un mapa de las 4 ciudades que colorea las zonas según cuántas entregas en riesgo tienen ese día. Datos del mapa desde Azure SQL, agregados por `city` + `zone`. De un vistazo el operador sabe dónde se concentran los problemas.</sub> | | |
