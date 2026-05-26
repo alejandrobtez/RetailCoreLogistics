@@ -111,19 +111,6 @@
  
 ---
  
-## 💰 Estimación de costes en producción
- 
-| Servicio | Coste estimado/mes |
-|---|---|
-| Azure ML (endpoint + compute) | ~60 € |
-| Azure PostgreSQL Flexible | ~30 € |
-| Azure Blob Storage | ~5 € |
-| Azure Functions + Logic Apps | ~12 € |
-| Power BI Premium Per User | ~20 € |
-| **Total estimado** | **~127 €/mes** |
- 
----
- 
 ## 📁 Estructura del repositorio
  
 ```
