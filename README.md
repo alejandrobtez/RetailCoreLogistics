@@ -1,13 +1,13 @@
 # RetailCore Logistics · Predictor de Fallos en Entrega
 
-![Banner](assets/banner.svg)
+![Banner](img/banner.svg)
 
 > **Tajamar Fight · Caso 01** · Predicción de fallos en entrega de última milla con IA explicable  
 > **Entrega:** 22/06/2026 · **Stack:** Azure ML · XGBoost · FastAPI · SHAP · Power BI
 
 ---
 
-![Equipo](assets/equipo.svg)
+![Equipo](img/equipo.svg)
 
 | Miembro | Rol | Detalle de tareas |
 |---|---|---|
@@ -27,7 +27,7 @@ RetailCore mueve **18.000 paquetes/día** en Madrid, Barcelona, Valencia y Sevil
 
 ## 🗺️ Arquitectura de la solución
 
-![Arquitectura](assets/arquitectura.svg)
+![Arquitectura](img/arquitectura.svg)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -167,7 +167,7 @@ retailcore-predictor/
 │   ├── predict.py                    # Endpoint /predict
 │   └── scheduler.py                  # Job 7:00 AM
 │
-├── 📂 dashboard/
+├── 📂 dashboard/assets
 │   └── retailcore.pbix               # Power BI report
 │
 ├── 📂 docs/
@@ -180,7 +180,7 @@ retailcore-predictor/
 │   ├── borja.md                      # Tareas de Borja
 │   └── marta.md                      # Tareas de Marta
 │
-├── .env.example
+├── .env.exampleassets
 ├── requirements.txt
 └── README.md
 ```
