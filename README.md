@@ -118,7 +118,8 @@
 |---|---|---|
 | Estructura del proyecto FastAPI | ❓ Por asignar | ⚪ Pendiente |
 | <sub>Crear app con routers separados: `/predict`, `/report/today`, `/health`. Documentación Swagger automática</sub> | | |
-| Endpoint `POST /predict` | ❓ Por asignar | ⚪ Pendiente |
+| Endpoint `POST /predict` | ❓ Por asignar | ⚪ 
+| <sub>Desglose mensual por servicio Azure en `docs/costes.md`. Incluir escenario mínimo y escenario completo</Pendiente |
 | <sub>Recibe lista de entregas → devuelve lista priorizada con probabilidad de fallo y top 3 factores SHAP</sub> | | |
 | Integración con Azure ML Online Endpoint | ❓ Por asignar | ⚪ Pendiente |
 | <sub>Llamar al endpoint de Azure ML desde la API con autenticación por Managed Identity</sub> | | |
@@ -179,7 +180,7 @@
  
 ## 🏗️ Arquitectura de la solución
  
-![Arquitectura](img/assetsarquitectura.svg)
+![Arquitectura](img/arquitectura.svg)
  
 ```
 ┌─────────────────────────────────────────────────────────────────┐
