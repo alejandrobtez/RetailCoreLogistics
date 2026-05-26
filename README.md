@@ -158,12 +158,11 @@ mlflow ui --backend-store-uri mlruns   # → http://localhost:5000
  
 | Recurso | Nombre sugerido | Para qué |
 |---|---|---|
-| Resource Group | `rg-retailcore-ml` | Contenedor de todos los recursos |
-| Storage Account | `stretailcoreml` | Datos, modelos, reports |
-| Azure SQL Server | `sql-retailcore-ml` | Historial de predicciones y métricas |
-| Azure SQL Database | `retailcore-predictions` | Tablas de resultados |
-| Key Vault | `kv-retailcore-ml` | Secretos: AEMET key, connection strings |
-| Azure ML Workspace | `mlw-retailcore` | MLflow tracking + Model Registry |
+| Resource Group | `BenitezBernaAlejandro` | Contenedor de todos los recursos |
+| Storage Account | `logisticstoragegenai` | Datos, modelos, reports |
+| Azure PostgreSQL | `sql-retailcore-ml` | Historial de predicciones y métricas, tablas de resultados |
+| Key Vault | `?????` | Secretos: AEMET key, connection strings |
+| Azure ML Workspace | `???????` | MLflow tracking + Model Registry |
 | Azure Logic Apps | — | SMS automático a destinatarios de riesgo |
  
 ### Crear los recursos (Azure CLI)
