@@ -1,0 +1,152 @@
+# =============================================================================
+# RetailCore Logistics — ML Pipeline Config (Azure Edition)
+# =============================================================================
+
+project:
+  name: "retailcore-delivery-prediction"
+  version: "2.0.0"
+  description: "Predicción de fallos de entrega antes de las 7:00 AM"
+
+# ---------------------------------------------------------------------------
+# AZURE — Recursos centrales
+# Todas las credenciales van en variables de entorno o Azure Key Vault,
+# NUNCA hardcodeadas aquí.
+# ---------------------------------------------------------------------------
+azure:
+  subscription_id: ""                        # AZURE_SUBSCRIPTION_ID (env var)
+  resource_group: "rg-retailcore-ml"
+
+  # Blob Storage — datos y modelos
+  storage:
+    account_name: "stretailcoreml"           # AZURE_STORAGE_ACCOUNT (env var)
+    # connection_string → AZURE_STORAGE_CONNECTION_STRING (env var)
+    containers:
+      raw_data: "raw-data"                   # CSVs originales
+      processed: "processed"                 # artefactos de preprocesado
+      models: "models"                       # modelos .pkl
+      reports: "reports"                     # predicciones diarias y métricas
+
+  # Azure SQL Database — historial de predicciones y métricas
+  sql:
+    server: "sql-retailcore-ml.database.windows.net"
+    database: "retailcore-predictions"
+    # connection_string → AZURE_SQL_CONNECTION_STRING (env var)
+    tables:
+      predictions: "delivery_predictions"    # predicciones diarias
+      model_metrics: "model_metrics"         # métricas por run
+      drift_alerts: "drift_alerts"           # alertas de data drift
+
+  # MLflow sobre Azure ML (o tracking local con backend en Azure SQL)
+  mlflow:
+    tracking_uri: ""                         # MLFLOW_TRACKING_URI (env var)
+    # Si está vacío, usa Azure ML Workspace como backend
+    experiment_name: "retailcore-delivery-prediction"
+    register_best_model: true
+    model_name: "retailcore-best-model"
+
+  # Azure ML Workspace (opcional: para jobs remotos y Model Registry)
+  ml_workspace:
+    name: "mlw-retailcore"
+    # autenticación via DefaultAzureCredential (Managed Identity en producción)
+
+  # Key Vault — secretos (AEMET key, connection strings, etc.)
+  key_vault:
+    name: "kv-retailcore-ml"
+    secrets:
+      aemet_key: "aemet-api-key"
+      sql_conn: "sql-connection-string"
+      storage_conn: "storage-connection-string"
+
+# ---------------------------------------------------------------------------
+# Paths locales — solo para caché temporal durante la ejecución
+# En producción todo lee/escribe contra Azure Blob
+# ---------------------------------------------------------------------------
+paths:
+  local_tmp: "/tmp/retailcore"               # caché local transitoria
+  logs: "logs"
+
+# ---------------------------------------------------------------------------
+# Datos
+# ---------------------------------------------------------------------------
+data:
+  filename: "deliveries_features.csv"
+  target: "delivery_failed"
+  exclude_cols: ["delivery_id", "recipient_id", "delivery_failed"]
+  test_size: 0.2
+  val_size: 0.1
+  random_state: 42
+
+# ---------------------------------------------------------------------------
+# AEMET
+# ---------------------------------------------------------------------------
+aemet:
+  base_url: "https://opendata.aemet.es/openapi/api"
+  # api_key → Azure Key Vault secret "aemet-api-key"
+  stations:
+    madrid: "3195"
+    barcelona: "0076"
+    valencia: "8416"
+    sevilla: "5783"
+  feature_mapping:
+    prec: "weather_rain"
+    vv: "weather_wind_speed"
+    ta: "weather_temperature"
+  thresholds:
+    strong_wind_ms: 10.0
+    adverse_weather_rain_mm: 5.0
+
+# ---------------------------------------------------------------------------
+# Modelos
+# ---------------------------------------------------------------------------
+models:
+  random_state: 42
+  candidates:
+    logistic_regression:
+      enabled: true
+      C: 0.1
+      max_iter: 500
+    random_forest:
+      enabled: true
+      n_estimators: 300
+      max_depth: 12
+      min_samples_leaf: 10
+    xgboost:
+      enabled: true
+      n_estimators: 400
+      max_depth: 6
+      learning_rate: 0.05
+      subsample: 0.8
+      colsample_bytree: 0.8
+
+# ---------------------------------------------------------------------------
+# Evaluación
+# ---------------------------------------------------------------------------
+evaluation:
+  primary_metric: "avg_precision"
+  threshold_search:
+    min: 0.2
+    max: 0.7
+    step: 0.02
+
+# ---------------------------------------------------------------------------
+# Inferencia
+# ---------------------------------------------------------------------------
+inference:
+  batch_size: 18000
+  schedule_time: "06:50"
+  risk_levels:
+    high:
+      threshold_multiplier: 1.3
+      action: "REAGENDAR_SMS"
+    medium:
+      threshold_multiplier: 1.0
+      action: "CAMBIAR_FRANJA"
+    low:
+      action: "ENTREGA_NORMAL"
+
+# ---------------------------------------------------------------------------
+# Monitorización
+# ---------------------------------------------------------------------------
+monitoring:
+  drift_threshold: 0.05
+  min_samples_for_drift: 1000
