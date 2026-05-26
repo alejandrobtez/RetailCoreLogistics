@@ -1,0 +1,93 @@
+# =============================================================================
+# RetailCore Logistics — ML Pipeline Config
+# =============================================================================
+
+project:
+  name: "retailcore-delivery-prediction"
+  version: "1.0.0"
+  description: "Predicción de fallos de entrega antes de las 7:00 AM"
+
+paths:
+  data_raw: "data/raw"
+  data_processed: "data/processed"
+  models: "models"
+  reports: "reports"
+  logs: "logs"
+
+data:
+  filename: "deliveries_features.csv"
+  target: "delivery_failed"
+  exclude_cols: ["delivery_id", "recipient_id", "delivery_failed"]
+  test_size: 0.2
+  val_size: 0.1
+  random_state: 42
+
+aemet:
+  base_url: "https://opendata.aemet.es/openapi/api"
+  # Estaciones meteorológicas por ciudad
+  stations:
+    madrid: "3195"
+    barcelona: "0076"
+    valencia: "8416"
+    sevilla: "5783"
+  # Variables que extraemos y su mapeo a features del modelo
+  feature_mapping:
+    prec: "weather_rain"          # precipitación (mm)
+    vv: "weather_wind_speed"      # velocidad viento (m/s)
+    ta: "weather_temperature"     # temperatura (°C)
+  # Umbrales para features derivadas
+  thresholds:
+    strong_wind_ms: 10.0          # m/s para considerar viento fuerte
+    adverse_weather_rain_mm: 5.0  # mm para clima adverso
+
+models:
+  random_state: 42
+  # Modelos a entrenar (se evalúan todos, se guarda el mejor)
+  candidates:
+    logistic_regression:
+      enabled: true
+      C: 0.1
+      max_iter: 500
+    random_forest:
+      enabled: true
+      n_estimators: 300
+      max_depth: 12
+      min_samples_leaf: 10
+    xgboost:
+      enabled: true
+      n_estimators: 400
+      max_depth: 6
+      learning_rate: 0.05
+      subsample: 0.8
+      colsample_bytree: 0.8
+
+evaluation:
+  primary_metric: "avg_precision"   # métrica para seleccionar el mejor modelo
+  threshold_search:
+    min: 0.2
+    max: 0.7
+    step: 0.02
+
+inference:
+  batch_size: 18000                  # paquetes/día RetailCore
+  schedule_time: "06:50"            # hora del batch diario
+  # Acciones por nivel de riesgo
+  risk_levels:
+    high:
+      threshold_multiplier: 1.3     # best_threshold * 1.3
+      action: "REAGENDAR_SMS"
+    medium:
+      threshold_multiplier: 1.0     # best_threshold
+      action: "CAMBIAR_FRANJA"
+    low:
+      action: "ENTREGA_NORMAL"
+
+mlflow:
+  tracking_uri: "mlruns"
+  experiment_name: "retailcore-delivery-prediction"
+  register_best_model: true
+  model_name: "retailcore-best-model"
+
+monitoring:
+  drift_threshold: 0.05             # PSI > 0.05 → alerta de drift
+  min_samples_for_drift: 1000
