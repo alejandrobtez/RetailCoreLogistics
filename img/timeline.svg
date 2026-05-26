@@ -1,0 +1,113 @@
+<svg viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f1923"/>
+      <stop offset="100%" style="stop-color:#162030"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0078d4"/>
+      <stop offset="100%" style="stop-color:#00bcf2"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="900" height="500" fill="url(#bg)" rx="12"/>
+
+  <!-- Title -->
+  <text x="450" y="35" text-anchor="middle" fill="#00bcf2" font-size="15" font-weight="700" letter-spacing="3">LÍNEA TEMPORAL DEL PROYECTO</text>
+  <line x1="60" y1="48" x2="840" y2="48" stroke="#0078d4" stroke-width="0.5" opacity="0.5"/>
+
+  <!-- Main horizontal timeline line -->
+  <line x1="80" y1="260" x2="820" y2="260" stroke="url(#line)" stroke-width="3"/>
+  <!-- Arrow -->
+  <polygon points="820,254 835,260 820,266" fill="#00bcf2"/>
+
+  <!-- === PHASE NODES === -->
+  <!-- Node 1: Datos -->
+  <circle cx="130" cy="260" r="18" fill="#0078d4" opacity="0.2"/>
+  <circle cx="130" cy="260" r="18" fill="none" stroke="#0078d4" stroke-width="2"/>
+  <text x="130" y="265" text-anchor="middle" fill="#00bcf2" font-size="13" font-weight="700">1</text>
+
+  <!-- Node 2: ETL -->
+  <circle cx="260" cy="260" r="18" fill="#0078d4" opacity="0.2"/>
+  <circle cx="260" cy="260" r="18" fill="none" stroke="#0078d4" stroke-width="2"/>
+  <text x="260" y="265" text-anchor="middle" fill="#00bcf2" font-size="13" font-weight="700">2</text>
+
+  <!-- Node 3: Features -->
+  <circle cx="390" cy="260" r="18" fill="#0078d4" opacity="0.2"/>
+  <circle cx="390" cy="260" r="18" fill="none" stroke="#0078d4" stroke-width="2"/>
+  <text x="390" y="265" text-anchor="middle" fill="#00bcf2" font-size="13" font-weight="700">3</text>
+
+  <!-- Node 4: Modelo -->
+  <circle cx="520" cy="260" r="18" fill="#0078d4" opacity="0.2"/>
+  <circle cx="520" cy="260" r="18" fill="none" stroke="#0078d4" stroke-width="2"/>
+  <text x="520" y="265" text-anchor="middle" fill="#00bcf2" font-size="13" font-weight="700">4</text>
+
+  <!-- Node 5: SHAP/Explain -->
+  <circle cx="650" cy="260" r="18" fill="#ff6b35" opacity="0.2"/>
+  <circle cx="650" cy="260" r="18" fill="none" stroke="#ff6b35" stroke-width="2"/>
+  <text x="650" y="265" text-anchor="middle" fill="#ffaa80" font-size="13" font-weight="700">5</text>
+
+  <!-- Node 6: API + Dashboard -->
+  <circle cx="780" cy="260" r="18" fill="#ff6b35" opacity="0.2"/>
+  <circle cx="780" cy="260" r="18" fill="none" stroke="#ff6b35" stroke-width="2"/>
+  <text x="780" y="265" text-anchor="middle" fill="#ffaa80" font-size="13" font-weight="700">6</text>
+
+  <!-- === TOP LABELS (odd phases) === -->
+  <!-- Phase 1 top -->
+  <line x1="130" y1="242" x2="130" y2="170" stroke="#0078d4" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+  <rect x="60" y="115" width="140" height="55" rx="6" fill="#0078d4" opacity="0.12"/>
+  <rect x="60" y="115" width="3" height="55" fill="#0078d4" rx="2"/>
+  <text x="76" y="134" fill="#00bcf2" font-size="11" font-weight="700">DATOS SINTÉTICOS</text>
+  <text x="76" y="150" fill="#8899aa" font-size="10">Generar dataset</text>
+  <text x="76" y="163" fill="#8899aa" font-size="10">18K paquetes/día</text>
+
+  <!-- Phase 3 top -->
+  <line x1="390" y1="242" x2="390" y2="170" stroke="#0078d4" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+  <rect x="315" y="115" width="150" height="55" rx="6" fill="#0078d4" opacity="0.12"/>
+  <rect x="315" y="115" width="3" height="55" fill="#0078d4" rx="2"/>
+  <text x="331" y="134" fill="#00bcf2" font-size="11" font-weight="700">FEATURE ENG.</text>
+  <text x="331" y="150" fill="#8899aa" font-size="10">Variables temporales,</text>
+  <text x="331" y="163" fill="#8899aa" font-size="10">zona, clima, historial</text>
+
+  <!-- Phase 5 top -->
+  <line x1="650" y1="242" x2="650" y2="170" stroke="#ff6b35" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+  <rect x="575" y="115" width="155" height="55" rx="6" fill="#ff6b35" opacity="0.10"/>
+  <rect x="575" y="115" width="3" height="55" fill="#ff6b35" rx="2"/>
+  <text x="591" y="134" fill="#ffaa80" font-size="11" font-weight="700">EXPLICABILIDAD ⭐</text>
+  <text x="591" y="150" fill="#8899aa" font-size="10">SHAP · What-If Tool</text>
+  <text x="591" y="163" fill="#8899aa" font-size="10">Counterfactuals (DiCE)</text>
+
+  <!-- === BOTTOM LABELS (even phases) === -->
+  <!-- Phase 2 bottom -->
+  <line x1="260" y1="278" x2="260" y2="330" stroke="#0078d4" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+  <rect x="185" y="330" width="150" height="55" rx="6" fill="#0078d4" opacity="0.12"/>
+  <rect x="185" y="330" width="3" height="55" fill="#0078d4" rx="2"/>
+  <text x="201" y="350" fill="#00bcf2" font-size="11" font-weight="700">ETL Y LIMPIEZA</text>
+  <text x="201" y="366" fill="#8899aa" font-size="10">AEMET scraping,</text>
+  <text x="201" y="379" fill="#8899aa" font-size="10">PostgreSQL, Azure Blob</text>
+
+  <!-- Phase 4 bottom -->
+  <line x1="520" y1="278" x2="520" y2="330" stroke="#0078d4" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+  <rect x="445" y="330" width="150" height="55" rx="6" fill="#0078d4" opacity="0.12"/>
+  <rect x="445" y="330" width="3" height="55" fill="#0078d4" rx="2"/>
+  <text x="461" y="350" fill="#00bcf2" font-size="11" font-weight="700">MODELO ML</text>
+  <text x="461" y="366" fill="#8899aa" font-size="10">XGBoost · Random Forest</text>
+  <text x="461" y="379" fill="#8899aa" font-size="10">Azure ML Registry</text>
+
+  <!-- Phase 6 bottom -->
+  <line x1="780" y1="278" x2="780" y2="330" stroke="#ff6b35" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+  <rect x="700" y="330" width="155" height="55" rx="6" fill="#ff6b35" opacity="0.10"/>
+  <rect x="700" y="330" width="3" height="55" fill="#ff6b35" rx="2"/>
+  <text x="716" y="350" fill="#ffaa80" font-size="11" font-weight="700">API + DASHBOARD ⭐</text>
+  <text x="716" y="366" fill="#8899aa" font-size="10">FastAPI · Power BI</text>
+  <text x="716" y="379" fill="#8899aa" font-size="10">SMS · Job 7:00 AM</text>
+
+  <!-- Legend -->
+  <rect x="60" y="450" width="14" height="14" rx="3" fill="#0078d4" opacity="0.5"/>
+  <text x="82" y="462" fill="#8899aa" font-size="11">Pipeline principal</text>
+  <rect x="230" y="450" width="14" height="14" rx="3" fill="#ff6b35" opacity="0.5"/>
+  <text x="252" y="462" fill="#8899aa" font-size="11">Diferenciadores clave</text>
+
+  <!-- Duration hint -->
+  <text x="840" y="462" text-anchor="end" fill="#445566" font-size="10">Entrega: 22/06/2026</text>
+</svg>
