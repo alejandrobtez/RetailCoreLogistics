@@ -1,0 +1,118 @@
+<svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', sans-serif">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f1923"/>
+      <stop offset="100%" style="stop-color:#162030"/>
+    </linearGradient>
+    <linearGradient id="layer1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1e3a5f"/>
+      <stop offset="100%" style="stop-color:#1a3350"/>
+    </linearGradient>
+    <linearGradient id="layer2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0d3352"/>
+      <stop offset="100%" style="stop-color:#0a2a45"/>
+    </linearGradient>
+    <linearGradient id="layer3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#0a2540"/>
+      <stop offset="100%" style="stop-color:#081e35"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="900" height="320" fill="url(#bg2)" rx="12"/>
+
+  <!-- Title -->
+  <text x="450" y="32" text-anchor="middle" fill="#00bcf2" font-size="14" font-weight="600" letter-spacing="3">ARQUITECTURA DE LA SOLUCIÓN</text>
+  <line x1="60" y1="42" x2="840" y2="42" stroke="#0078d4" stroke-width="0.5" opacity="0.5"/>
+
+  <!-- Layer 1: DATA -->
+  <rect x="40" y="55" width="820" height="56" fill="url(#layer1)" rx="8" opacity="0.9"/>
+  <rect x="40" y="55" width="4" height="56" fill="#00bcf2" rx="2"/>
+  <text x="62" y="75" fill="#8ecfef" font-size="10" letter-spacing="2" font-weight="600">CAPA 1 · DATOS</text>
+
+  <!-- Data components -->
+  <rect x="65" y="82" width="130" height="22" rx="4" fill="#0078d4" opacity="0.3"/>
+  <text x="130" y="97" text-anchor="middle" fill="white" font-size="11">📊 Datos Sintéticos + Scraping</text>
+
+  <text x="210" y="96" fill="#00bcf2" font-size="14">→</text>
+
+  <rect x="230" y="82" width="110" height="22" rx="4" fill="#0078d4" opacity="0.3"/>
+  <text x="285" y="97" text-anchor="middle" fill="white" font-size="11">🗄️ PostgreSQL</text>
+
+  <text x="348" y="96" fill="#00bcf2" font-size="14">→</text>
+
+  <rect x="368" y="82" width="110" height="22" rx="4" fill="#0078d4" opacity="0.3"/>
+  <text x="423" y="97" text-anchor="middle" fill="white" font-size="11">☁️ Azure Blob Storage</text>
+
+  <text x="486" y="96" fill="#00bcf2" font-size="14">→</text>
+
+  <rect x="506" y="82" width="110" height="22" rx="4" fill="#0078d4" opacity="0.3"/>
+  <text x="561" y="97" text-anchor="middle" fill="white" font-size="11">🔄 ETL / Feature Eng.</text>
+
+  <!-- Layer 2: ML -->
+  <rect x="40" y="120" width="820" height="56" fill="url(#layer2)" rx="8" opacity="0.9"/>
+  <rect x="40" y="120" width="4" height="56" fill="#0078d4" rx="2"/>
+  <text x="62" y="140" fill="#8ecfef" font-size="10" letter-spacing="2" font-weight="600">CAPA 2 · MACHINE LEARNING (Azure ML)</text>
+
+  <rect x="65" y="147" width="110" height="22" rx="4" fill="#005fa3" opacity="0.5"/>
+  <text x="120" y="162" text-anchor="middle" fill="white" font-size="11">🤖 XGBoost / RF</text>
+
+  <text x="183" y="161" fill="#00bcf2" font-size="14">→</text>
+
+  <rect x="202" y="147" width="130" height="22" rx="4" fill="#005fa3" opacity="0.5"/>
+  <text x="267" y="162" text-anchor="middle" fill="white" font-size="11">🔍 SHAP Explainability</text>
+
+  <text x="340" y="161" fill="#00bcf2" font-size="14">→</text>
+
+  <rect x="359" y="147" width="130" height="22" rx="4" fill="#005fa3" opacity="0.5"/>
+  <text x="424" y="162" text-anchor="middle" fill="white" font-size="11">📦 Azure ML Registry</text>
+
+  <text x="498" y="161" fill="#00bcf2" font-size="14">→</text>
+
+  <rect x="516" y="147" width="130" height="22" rx="4" fill="#005fa3" opacity="0.5"/>
+  <text x="581" y="162" text-anchor="middle" fill="white" font-size="11">🌐 Online Endpoint</text>
+
+  <!-- DIFERENCIADOR badge -->
+  <rect x="660" y="147" width="190" height="22" rx="11" fill="#ff6b35" opacity="0.2"/>
+  <rect x="660" y="147" width="3" height="22" fill="#ff6b35" rx="2"/>
+  <text x="755" y="162" text-anchor="middle" fill="#ffaa80" font-size="10" font-weight="600">⭐ What-If Tool · Counterfactuals</text>
+
+  <!-- Layer 3: BACKEND -->
+  <rect x="40" y="185" width="820" height="56" fill="url(#layer3)" rx="8" opacity="0.9"/>
+  <rect x="40" y="185" width="4" height="56" fill="#005fa3" rx="2"/>
+  <text x="62" y="205" fill="#8ecfef" font-size="10" letter-spacing="2" font-weight="600">CAPA 3 · BACKEND</text>
+
+  <rect x="65" y="212" width="110" height="22" rx="4" fill="#003d73" opacity="0.7"/>
+  <text x="120" y="227" text-anchor="middle" fill="white" font-size="11">🚀 FastAPI (Python)</text>
+
+  <text x="183" y="226" fill="#00bcf2" font-size="14">→</text>
+
+  <rect x="202" y="212" width="120" height="22" rx="4" fill="#003d73" opacity="0.7"/>
+  <text x="262" y="227" text-anchor="middle" fill="white" font-size="11">🔔 Azure Logic Apps</text>
+
+  <text x="330" y="226" fill="#00bcf2" font-size="14">→</text>
+
+  <rect x="349" y="212" width="120" height="22" rx="4" fill="#003d73" opacity="0.7"/>
+  <text x="409" y="227" text-anchor="middle" fill="white" font-size="11">📱 SMS / Notificaciones</text>
+
+  <!-- Differentiator -->
+  <rect x="490" y="212" width="200" height="22" rx="11" fill="#ff6b35" opacity="0.2"/>
+  <rect x="490" y="212" width="3" height="22" fill="#ff6b35" rx="2"/>
+  <text x="590" y="227" text-anchor="middle" fill="#ffaa80" font-size="10" font-weight="600">⭐ Power BI Embedded · Dashboard Ops</text>
+
+  <!-- Layer 4: OUTPUT -->
+  <rect x="40" y="250" width="820" height="56" fill="#081830" rx="8" opacity="0.9"/>
+  <rect x="40" y="250" width="4" height="56" fill="#005080" rx="2"/>
+  <text x="62" y="270" fill="#8ecfef" font-size="10" letter-spacing="2" font-weight="600">CAPA 4 · SALIDA OPERATIVA</text>
+
+  <rect x="65" y="278" width="130" height="22" rx="4" fill="#002d52" opacity="0.9"/>
+  <text x="130" y="293" text-anchor="middle" fill="white" font-size="11">📋 Lista priorizada de fallos</text>
+
+  <rect x="215" y="278" width="130" height="22" rx="4" fill="#002d52" opacity="0.9"/>
+  <text x="280" y="293" text-anchor="middle" fill="white" font-size="11">💬 Explicación por entrega</text>
+
+  <rect x="365" y="278" width="130" height="22" rx="4" fill="#002d52" opacity="0.9"/>
+  <text x="430" y="293" text-anchor="middle" fill="white" font-size="11">⏰ Disponible antes 7:00 AM</text>
+
+  <rect x="515" y="278" width="130" height="22" rx="4" fill="#002d52" opacity="0.9"/>
+  <text x="580" y="293" text-anchor="middle" fill="white" font-size="11">📊 Report Power BI</text>
+</svg>
