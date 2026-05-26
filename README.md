@@ -17,9 +17,9 @@
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Generar el dataset de entregas | ❓ Por asignar | ⚪ Pendiente |
+| Generar el dataset de entregas | Marta | ✅ Hecho |
 | <sub>No tenemos datos reales, así que los fabricamos. Con Python generamos un fichero con ~500.000 entregas ficticias que incluyen: ciudad, zona, día de la semana, tipo de producto, si llovía, si fue primer intento o reintento, y si la entrega falló. La tasa de fallos debe rondar el 23%.</sub> | | |
-| Descargar datos meteorológicos | ❓ Por asignar | ⚪ Pendiente |
+| Descargar datos meteorológicos | Marta | ⚪ Pendiente |
 | <sub>Usamos la API gratuita de AEMET para descargar lluvia y temperatura histórica en Madrid, Barcelona, Valencia y Sevilla. Luego lo unimos al dataset por fecha y ciudad.</sub> | | |
  
 ---
@@ -32,7 +32,7 @@
 | <sub>Los datos más antiguos serán para entrenar el modelo y los más recientes para comprobar si funciona bien. Nunca mezclamos ambos grupos, porque si no estaríamos haciendo trampa.</sub> | | |
 | Entrenar y elegir el mejor modelo | ❓ Por asignar | ⚪ Pendiente |
 | <sub>Probamos dos modelos (Random Forest y XGBoost) y nos quedamos con el que mejor detecte los fallos. El objetivo es que acierte en al menos el 80% de los casos (AUC-ROC ≥ 0.80). Lo guardamos en Azure ML.</sub> | | |
-| Explicar por qué falla cada entrega | ❓ Por asignar | ⚪ Pendiente |
+| Explicar por qué falla cada entrega | Alejandro | ⚪ Pendiente |
 | <sub>Con una librería llamada SHAP hacemos que el modelo no solo diga "esta entrega va a fallar" sino también por qué: "porque llueve, es reintento y es viernes por la tarde". Eso es lo que verá el operador.</sub> | | |
  
 ---
@@ -41,11 +41,11 @@
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Crear la API | ❓ Por asignar | ⚪ Pendiente |
+| Crear la API | Borja | ⚪ Pendiente |
 | <sub>Construimos un servicio con FastAPI al que le mandas la lista de entregas del día y te devuelve cada una con su probabilidad de fallo y el motivo. Es lo que conecta el modelo con el dashboard y el resto del sistema.</sub> | | |
-| Automatizar la predicción diaria | ❓ Por asignar | ⚪ Pendiente |
+| Automatizar la predicción diaria | Alejandro | ⚪ Pendiente |
 | <sub>Programamos un proceso automático en Azure que cada noche, antes de las 7:00 AM, coge las entregas del día siguiente, llama al modelo y guarda los resultados. Sin que nadie tenga que hacer nada.</sub> | | |
-| Avisar a los destinatarios de riesgo | ❓ Por asignar | ⚪ Pendiente |
+| Avisar a los destinatarios de riesgo | Marta | ⚪ Pendiente |
 | <sub>Si una entrega tiene más del 70% de probabilidad de fallo, el sistema manda automáticamente un SMS al destinatario proponiéndole cambiar el horario. Lo hacemos con Azure Logic Apps.</sub> | | |
  
 ---
@@ -54,9 +54,9 @@
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Crear el panel para operadores | ❓ Por asignar | ⚪ Pendiente |
+| Crear el panel para operadores | Alejandro | ⚪ Pendiente |
 | <sub>Un informe en Power BI que cada mañana muestra la lista de entregas del día ordenada de mayor a menor riesgo, con un semáforo de colores y el motivo del fallo explicado en texto normal. Sin tecnicismos.</sub> | | |
-| ⭐ Añadir mapa de zonas de riesgo | ❓ Por asignar | ⚪ Pendiente |
+| ⭐ Añadir mapa de zonas de riesgo | Borja | ⚪ Pendiente |
 | <sub>Dentro del dashboard, un mapa de las 4 ciudades que colorea las zonas según cuántas entregas en riesgo tienen ese día. De un vistazo el operador sabe dónde se van a concentrar los problemas.</sub> | | |
  
 ---
@@ -65,9 +65,9 @@
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Hacer funcionar todo junto | ❓ Por asignar | ⚪ Pendiente |
+| Hacer funcionar todo junto | Borja | ⚪ Pendiente |
 | <sub>Ejecutar el sistema completo de principio a fin: generamos datos, el modelo predice, la API responde y el dashboard lo muestra. Si esto funciona, el proyecto está listo.</sub> | | |
-| Preparar la presentación | ❓ Por asignar | ⚪ Pendiente |
+| Preparar la presentación | Alejandro | ⚪ Pendiente |
 | <sub>Slides y demo en directo para el jurado. Hay que explicar el problema, cómo lo resolvemos, cuánto costaría en producción y por qué nuestra solución es mejor que la del otro grupo.</sub> | | |
  
 ---
@@ -88,7 +88,7 @@
 │  Datos sintéticos + scraping AEMET ──► PostgreSQL ──► Azure Blob│
 ├─────────────────────────────────────────────────────────────────┤
 │  CAPA 2 · MACHINE LEARNING  (Azure ML)                          │
-│  XGBoost / RF ──► SHAP ──► Azure ML Registry ──► Endpoint      │
+│  XGBoost / RF ──► SHAP ──► Azure ML Registry ──► Endpoint      │❓ Por asignar
 ├─────────────────────────────────────────────────────────────────┤
 │  CAPA 3 · BACKEND                                               │
 │  FastAPI ──► Azure Functions (job 7AM) ──► Logic Apps (SMS)    │
@@ -118,7 +118,7 @@ retailcore-predictor/
 │
 ├── 📂 img/
 │   ├── banner.svg
-│   ├── arquitectura.svg
+│   ├── arquitectura.svg❓ Por asignar
 │   └── timeline.svg
 │
 ├── 📂 data/
