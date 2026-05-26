@@ -12,161 +12,61 @@
 ---
  
 ### — DATOS —
- assets
+ 
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Diseñar esquema del dataset | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Definir columnas: entrega_id, fecha, zona, destinatario_id, tipo_producto, repartidor_id, franja_horaria, resultado (0/1)</sub> | | |
-| Generar dataset sintético | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Script Python: 18.000 paquetes/día × 180 días históricos (~3M registros). Tasa de fallo objetivo: ~23%</sub> | | |
-| Inyectar señales reales de fallo | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Ajustar probabilidades por zona (centro +8%), día (viernes +12%), tipo producto (requiere firma +15%), reintento (+20%)</sub> | | |
-| Scraping meteorológico AEMET | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Extraer datos históricos de lluvia, temperatura y viento en Madrid, Barcelona, Valencia y Sevilla</sub> | | |
-| Generar tabla de destinatarios con historial | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Historial de fallos por destinatario (últimas 10 entregas), número de intentos previos fallidos</sub> | | |
-| Generar tabla de repartidores | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Carga media diaria, zonas habituales, ratio de entregas pesadas</sub> | | |
-| Validar distribución de fallos | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Verificar que el dataset tiene tasa de fallo ~23% y que las señales están bien correlacionadas</sub> | | |
+| Generar el dataset de entregas | ❓ Por asignar | ⚪ Pendiente |
+| <sub>No tenemos datos reales, así que los fabricamos. Con Python generamos un fichero con ~500.000 entregas ficticias que incluyen: ciudad, zona, día de la semana, tipo de producto, si llovía, si fue primer intento o reintento, y si la entrega falló. La tasa de fallos debe rondar el 23%.</sub> | | |
+| Descargar datos meteorológicos | ❓ Por asignar | ⚪ Pendiente |
+| <sub>Usamos la API gratuita de AEMET para descargar lluvia y temperatura histórica en Madrid, Barcelona, Valencia y Sevilla. Luego lo unimos al dataset por fecha y ciudad.</sub> | | |
  
 ---
  
-### — ETL Y LIMPIEZA —
+### — MODELO —
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Diseñar esquema PostgreSQL | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Tablas: `entregas`, `destinatarios`, `repartidores`, `zonas`, `meteorologia`. Script `schema.sql`</sub> | | |
-| Cargar datos en PostgreSQL | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Script `load_to_postgres.py` con control de errores y logs</sub> | | |
-| Subir datos a Azure Blob Storage | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Organización: `raw/YYYY-MM-DD/entregas.csv`. Contenedor separado para `processed/`</sub> | | |
-| Notebook ETL y exploración | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Analizar distribuciones, % nulos por columna, outliers en tiempos y coordenadas</sub> | | |
-| Limpieza de nulos y outliers | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Estrategia por columna: imputar mediana, imputar moda o eliminar fila. Documentar decisiones</sub> | | |
-| Unir meteorología con entregas | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Join por fecha + ciudad. Verificar cobertura: todas las fechas deben tener datos meteorológicos</sub> | | |
-| Dataset limpio a Azure Blob (`processed/`) | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Subir el dataset final limpio listo para feature engineering</sub> | | |
+| Preparar los datos para entrenar | ❓ Por asignar | ⚪ Pendiente |
+| <sub>Los datos más antiguos serán para entrenar el modelo y los más recientes para comprobar si funciona bien. Nunca mezclamos ambos grupos, porque si no estaríamos haciendo trampa.</sub> | | |
+| Entrenar y elegir el mejor modelo | ❓ Por asignar | ⚪ Pendiente |
+| <sub>Probamos dos modelos (Random Forest y XGBoost) y nos quedamos con el que mejor detecte los fallos. El objetivo es que acierte en al menos el 80% de los casos (AUC-ROC ≥ 0.80). Lo guardamos en Azure ML.</sub> | | |
+| Explicar por qué falla cada entrega | ❓ Por asignar | ⚪ Pendiente |
+| <sub>Con una librería llamada SHAP hacemos que el modelo no solo diga "esta entrega va a fallar" sino también por qué: "porque llueve, es reintento y es viernes por la tarde". Eso es lo que verá el operador.</sub> | | |
  
 ---
  
-### — FEATURE ENGINEERING —
+### — SISTEMA —
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Variables temporales | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Día de la semana (0-6), franja horaria (mañana/tarde/noche), si es festivo nacional o local</sub> | | |
-| Variable de zona | ❓ Por asignar | ⚪ Pendiente |
-| <sub>One-hot encoding: residencial, oficinas, polígono industrial, centro histórico</sub> | | |
-| Variables meteorológicas | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Lluvia (mm), temperatura (°C), viento (km/h), flag de niebla (0/1)</sub> | | |
-| Historial de fallos del destinatario | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Tasa de fallo histórica del destinatario (últimas 10 entregas), número de intentos previos fallidos totales</sub> | | |
-| Tipo de producto | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Flags binarios: requiere_firma, frágil, voluminoso, alto_valor (precio > 100€)</sub> | | |
-| Variable primer intento vs. reintento | ❓ Por asignar | ⚪ Pendiente |
-| <sub>`es_reintento` (0/1) + `num_intento` (1, 2, 3...) por entrega</sub> | | |
-| Carga del repartidor | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Número de entregas asignadas ese día, ratio de entregas de alto valor / total</sub> | | |
-| Verificar ausencia de data leakage | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Comprobar que ninguna feature usa información posterior a la fecha de la entrega que se predice</sub> | | |
-| Documentar todas las features | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Tabla en `docs/features.md`: nombre, descripción, unidad, rango esperado y cómo se calcula</sub> | | |
+| Crear la API | ❓ Por asignar | ⚪ Pendiente |
+| <sub>Construimos un servicio con FastAPI al que le mandas la lista de entregas del día y te devuelve cada una con su probabilidad de fallo y el motivo. Es lo que conecta el modelo con el dashboard y el resto del sistema.</sub> | | |
+| Automatizar la predicción diaria | ❓ Por asignar | ⚪ Pendiente |
+| <sub>Programamos un proceso automático en Azure que cada noche, antes de las 7:00 AM, coge las entregas del día siguiente, llama al modelo y guarda los resultados. Sin que nadie tenga que hacer nada.</sub> | | |
+| Avisar a los destinatarios de riesgo | ❓ Por asignar | ⚪ Pendiente |
+| <sub>Si una entrega tiene más del 70% de probabilidad de fallo, el sistema manda automáticamente un SMS al destinatario proponiéndole cambiar el horario. Lo hacemos con Azure Logic Apps.</sub> | | |
  
 ---
  
-### — MODELO ML —
+### — DASHBOARD —
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Preparar splits de entrenamiento y test | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Split temporal: train = datos hasta 3 meses atrás, test = último mes. Nunca split aleatorio</sub> | | |
-| Entrenar Random Forest (baseline) | ❓ Por asignar | ⚪ Pendiente |
-| <sub>`n_estimators=200`, `max_depth=8`, validación cruzada temporal k=5. Registrar AUC-ROC, Precision, Recall, F1</sub> | | |
-| Entrenar XGBoost | ❓ Por asignar | ⚪ Pendiente |
-| <sub>`learning_rate=0.05`, `n_estimators=500`, `scale_pos_weight` para el desbalanceo de clases</sub> | | |
-| Comparar modelos y seleccionar ganador | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Si diferencia AUC < 2% → Random Forest (más interpretable). Si no → XGBoost. Justificar decisión</sub> | | |
-| Registrar modelo en Azure ML Model Registry | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Subir con nombre `retailcore-fallo-predictor`, versión, métricas y fecha. Objetivo: AUC-ROC ≥ 0.80</sub> | | |
-| Documentar métricas finales | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Añadir tabla de resultados (AUC-ROC, Precision, Recall, F1, umbral óptimo) a `docs/metricas.md`</sub> | | |
+| Crear el panel para operadores | ❓ Por asignar | ⚪ Pendiente |
+| <sub>Un informe en Power BI que cada mañana muestra la lista de entregas del día ordenada de mayor a menor riesgo, con un semáforo de colores y el motivo del fallo explicado en texto normal. Sin tecnicismos.</sub> | | |
+| ⭐ Añadir mapa de zonas de riesgo | ❓ Por asignar | ⚪ Pendiente |
+| <sub>Dentro del dashboard, un mapa de las 4 ciudades que colorea las zonas según cuántas entregas en riesgo tienen ese día. De un vistazo el operador sabe dónde se van a concentrar los problemas.</sub> | | |
  
 ---
  
-### — EXPLICABILIDAD (diferenciadores) —
+### — ENTREGA —
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Implementar módulo SHAP | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Para cada predicción: devolver los 3 factores más influyentes con su efecto en probabilidad (+/-)</sub> | | |
-| Validar explicaciones con ejemplos reales | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Ejecutar SHAP sobre 10 entregas sintéticas y verificar que la explicación tiene sentido operativo</sub> | | |
-| ⭐ Implementar What-If Tool | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Función que permite cambiar una feature (ej: franja horaria → tarde) y recalcular la probabilidad sin reentrenar</sub> | | |
-| ⭐ Implementar Counterfactuals (DiCE) | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Para cada entrega de alto riesgo: "¿qué habría que cambiar para que la prob. de fallo baje del 30%?"</sub> | | |
- 
----
- 
-### — BACKEND Y API —
- 
-| Tarea | Responsable | Estado |
-|---|---|---|
-| Estructura del proyecto FastAPI | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Crear app con routers separados: `/predict`, `/report/today`, `/health`. Documentación Swagger automática</sub> | | |
-| Endpoint `POST /predict` | ❓ Por asignar | ⚪ 
-| <sub>Desglose mensual por servicio Azure en `docs/costes.md`. Incluir escenario mínimo y escenario completo</Pendiente |
-| <sub>Recibe lista de entregas → devuelve lista priorizada con probabilidad de fallo y top 3 factores SHAP</sub> | | |
-| Integración con Azure ML Online Endpoint | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Llamar al endpoint de Azure ML desde la API con autenticación por Managed Identity</sub> | | |
-| Job automático antes de las 7:00 AM | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Azure Functions o cron: leer entregas del día siguiente de PostgreSQL, llamar al modelo, guardar predicciones</sub> | | |
-| Notificaciones con Azure Logic Apps | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Si prob. fallo > 70% → SMS automático al destinatario + alerta al operador por email/Teams</sub> | | |
-| Umbral de notificación configurable | ❓ Por asignar | ⚪ Pendiente |
-| <sub>El umbral (70% por defecto) debe ser modificable sin tocar código, via variable de entorno o config</sub> | | |
- 
----
- 
-### — DASHBOARD OPERATIVO —
- 
-| Tarea | Responsable | Estado |
-|---|---|---|
-| Conectar Power BI a PostgreSQL | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Fuente de datos: tabla `predicciones_diarias` actualizada cada mañana por el job automático</sub> | | |
-| Vista principal: lista priorizada del día | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Tabla ordenada por probabilidad de fallo con semáforo visual (verde/naranja/rojo) y top factores</sub> | | |
-| ⭐ Mapa de calor por zona | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Mapa de Madrid/BCN/Valencia/Sevilla con intensidad de fallos previstos por zona geográfica</sub> | | |
-| Panel de explicación por entrega | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Al hacer clic en una entrega: muestra los 3 factores SHAP explicados en lenguaje natural para el operador</sub> | | |
-| KPIs del día | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Tarjetas resumen: total entregas, % alto riesgo, SMS enviados, comparativa con el día anterior</sub> | | |
-| Informe PDF/Excel automático | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Exportación del informe diario para operadores sin acceso directo a Power BI</sub> | | |
- 
----
- 
-### — DOCUMENTACIÓN Y ENTREGA —
- 
-| Tarea | Responsable | Estado |
-|---|---|---|
-| Documentar features | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Tabla en `docs/features.md` con nombre, descripción, unidad, rango esperado y cómo se calcula cada variable</sub> | | |
-| Documentar métricas del modelo | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Tabla en `docs/metricas.md` con AUC-ROC, Precision, Recall, F1 y comparativa entre modelos</sub> | | |
-| Estimación de costes en producción | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Desglose mensual por servicio Azure en `docs/costes.md`. Incluir escenario mínimo y escenario completo</sub> | | |
-| Arquitectura completa documentada | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Diagrama y descripción de todas las capas tal como irían a producción real, aunque no se implementen todas</sub> | | |
-| Demo funcional con datos sintéticos | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Ejecutar el pipeline completo end-to-end: datos → modelo → API → predicción con explicación</sub> | | |
-| Presentación final del proyecto | ❓ Por asignar | ⚪ Pendiente |
-| <sub>Preparar demo + slides para la exposición ante el jurado (resto de la clase como clientes)</sub> | | |
+| Hacer funcionar todo junto | ❓ Por asignar | ⚪ Pendiente |
+| <sub>Ejecutar el sistema completo de principio a fin: generamos datos, el modelo predice, la API responde y el dashboard lo muestra. Si esto funciona, el proyecto está listo.</sub> | | |
+| Preparar la presentación | ❓ Por asignar | ⚪ Pendiente |
+| <sub>Slides y demo en directo para el jurado. Hay que explicar el problema, cómo lo resolvemos, cuánto costaría en producción y por qué nuestra solución es mejor que la del otro grupo.</sub> | | |
 
 > **Estados:** ✅ Hecho · 🟡 En curso · ⚪ Pendiente · 🔴 AVISAR YA
  
