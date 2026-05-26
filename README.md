@@ -9,6 +9,8 @@
  
 ## ✅ Tareas del proyecto
  
+> **Estados:** ✅ Hecho · 🟡 En curso · ⚪ Pendiente · 🔴 AVISAR YA
+ 
 ---
  
 ### — DATOS —
@@ -67,8 +69,6 @@
 | <sub>Ejecutar el sistema completo de principio a fin: generamos datos, el modelo predice, la API responde y el dashboard lo muestra. Si esto funciona, el proyecto está listo.</sub> | | |
 | Preparar la presentación | ❓ Por asignar | ⚪ Pendiente |
 | <sub>Slides y demo en directo para el jurado. Hay que explicar el problema, cómo lo resolvemos, cuánto costaría en producción y por qué nuestra solución es mejor que la del otro grupo.</sub> | | |
-
-> **Estados:** ✅ Hecho · 🟡 En curso · ⚪ Pendiente · 🔴 AVISAR YA
  
 ---
  
@@ -89,7 +89,6 @@
 ├─────────────────────────────────────────────────────────────────┤
 │  CAPA 2 · MACHINE LEARNING  (Azure ML)                          │
 │  XGBoost / RF ──► SHAP ──► Azure ML Registry ──► Endpoint      │
-│  ⭐ What-If Tool · Counterfactuals DiCE                         │
 ├─────────────────────────────────────────────────────────────────┤
 │  CAPA 3 · BACKEND                                               │
 │  FastAPI ──► Azure Functions (job 7AM) ──► Logic Apps (SMS)    │
@@ -105,17 +104,14 @@
  
 | Diferenciador | Qué aporta al cliente |
 |---|---|
-| **What-If Tool** | El operador simula "¿qué pasa si cambio la franja a la tarde?" antes de decidir |
-| **Counterfactuals (DiCE)** | El sistema explica qué habría que cambiar para evitar el fallo |
-| **Mapa de calor Power BI** | Vista geográfica de zonas de riesgo, intuitiva para operadores no técnicos |
-| **SMS proactivo antes 7:00 AM** | Notificación automática al destinatario con alternativas de horario |
 | **Explicación por entrega** | No solo "alto riesgo", sino "falla porque llueve + centro + lunes + reintento" |
+| **SMS automático** | El sistema avisa al destinatario solo, sin intervención humana |
+| **Mapa de zonas de riesgo** | Vista geográfica intuitiva para operadores no técnicos |
+| **Dashboard sin tecnicismos** | Cualquier operador lo entiende el primer día, sin formación en IA |
  
 ---
  
 ## 💰 Estimación de costes en producción
- 
-> Detalle completo → [`docs/costes.md`](docs/costes.md)
  
 | Servicio | Coste estimado/mes |
 |---|---|
@@ -133,7 +129,7 @@
 ```
 retailcore-predictor/
 │
-├── 📂 assets/
+├── 📂 img/
 │   ├── banner.svg
 │   ├── arquitectura.svg
 │   └── timeline.svg
@@ -147,19 +143,17 @@ retailcore-predictor/
 │   ├── etl_limpieza.ipynb            # ETL, exploración y limpieza
 │   ├── feature_engineering.ipynb     # Feature engineering completo
 │   ├── train_model.ipynb             # Entrenamiento XGBoost / RF
-│   └── shap_explainability.ipynb     # SHAP + What-If + Counterfactuals
+│   └── shap_explainability.ipynb     # SHAP
 │
 ├── 📂 api/
 │   ├── main.py                       # FastAPI app
 │   ├── predict.py                    # Endpoint /predict
-│   ├── report.py                     # Endpoint /report/today
 │   └── scheduler.py                  # Job automático 6:45 AM
 │
 ├── 📂 dashboard/
 │   └── retailcore.pbix               # Power BI report
 │
 ├── 📂 docs/
-│   ├── features.md                   # Tabla de features documentadas
 │   ├── metricas.md                   # Resultados del modelo
 │   └── costes.md                     # Estimación de costes en producción
 │
@@ -174,48 +168,7 @@ retailcore-predictor/
  
 ```bash
 # 1. Clonar el repo
-git clone https://github.com/team# RetailCore Logistics · Predictor de Fallos en Entrega
-
-![Banner](img/banner.svg)
-
-> **Tajamar Fight · Caso 01** · Predicción de fallos en entrega de última milla con IA explicable  
-> **Entrega:** 22/06/2026 · **Stack:** Azure ML · XGBoost · FastAPI · SHAP · Power BI
-
----
-
-![Equipo](img/equipo.svg)
-
-| Miembro | Rol | Detalle de tareas |
-|---|---|---|
-| Alejandro Benítez | ML Lead | [📄 ver tareas](team/alejandro.md) |
-| Borja Núñez | Data Engineer | [📄 ver tareas](team/borja.md) |
-| Marta Moreno | Backend & Frontend Lead | [📄 ver tareas](team/marta.md) |
-
----
-
-## 🎯 El problema que resolvemos
-
-RetailCore mueve **18.000 paquetes/día** en Madrid, Barcelona, Valencia y Sevilla. Su tasa de fallo en primer intento es del **23%** — cada fallo cuesta dinero: el repartidor vuelve al hub, el paquete se reintenta y el cliente puede devolver el pedido.
-
-**Nuestra solución:** un sistema que, antes de las 7:00 AM, genera una lista priorizada de las entregas con mayor riesgo de fallo ese día, junto con una explicación concreta de por qué se va a fallar — para que el operador pueda actuar.
-
----
-
-## 🗺️ Arquitectura de la solución
-
-![Arquitectura](img/arquitectura.svg)
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  CAPA 1 · DATOS                                                 │
-│  Datos sintéticos + scraping ──► PostgreSQL ──► Azure Blob      │
-├─────────────────────────────────────────────────────────────────┤
-│  CAPA 2 · MACHINE LEARNING  (Azure ML)                          │
-│  XGBoost / RF ──► SHAP Explainability ──► Azure ML Registry    │
-│  ⭐ What-If Tool · Counterfactuals (diferenciador)              │
-├─────────────────────────────────────────────────────────────────┤
-│  CAPA 3 · BACKEND                                               │
-/retailcore-predictor.git
+git clone https://github.com/team/retailcore-predictor.git
 cd retailcore-predictor
  
 # 2. Instalar dependencias
@@ -248,3 +201,5 @@ uvicorn api.main:app --reload
 feat: generar dataset sintético con señales de fallo reales
 fix: corregir join meteorología por ciudad
 docs: añadir tabla de features a docs/features.md
+```
+ 
