@@ -26,7 +26,7 @@ Pipeline de ML desplegado sobre **Microsoft Azure**: datos en Blob Storage, hist
 | Descargar datos meteorológicos | Marta | 🟡 En curso |
 | <sub>Usamos la API gratuita de AEMET para descargar lluvia y temperatura histórica en Madrid, Barcelona, Valencia y Sevilla. La API key se guarda en **Azure Key Vault** (`aemet-api-key`). Script: `data/scraping_aemet.py`</sub> | | |
 | Subir dataset a Azure Blob Storage | Alejandro | ✅ Hecho |
-| <sub>Una vez generado el CSV, subirlo al container `raw-data` de la cuenta `stretailcoreml`. Comando: `az storage blob upload --container-name raw-data --name deliveries_features.csv --file deliveries_features.csv`</sub> | | |
+| <sub>Una vez generado el CSV, subirlo al container `raw` dentro de `data`</sub> | | |
  
 ---
  
