@@ -19,7 +19,7 @@
 |---|---|---|
 | Generar el dataset de entregas | Marta | ✅ Hecho |
 | <sub>No tenemos datos reales, así que los fabricamos. Con Python generamos un fichero con ~500.000 entregas ficticias que incluyen: ciudad, zona, día de la semana, tipo de producto, si llovía, si fue primer intento o reintento, y si la entrega falló. La tasa de fallos debe rondar el 23%.</sub> | | |
-| Descargar datos meteorológicos | Marta | ⚪ Pendiente |
+| Descargar datos meteorológicos | Marta | 🟡 En curso |
 | <sub>Usamos la API gratuita de AEMET para descargar lluvia y temperatura histórica en Madrid, Barcelona, Valencia y Sevilla. Luego lo unimos al dataset por fecha y ciudad.</sub> | | |
  
 ---
