@@ -34,8 +34,8 @@ Pipeline de ML desplegado sobre **Microsoft Azure**: datos en Blob Storage, hist
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Preparar los datos para entrenar | Marta | ✅ Hecho |
-| <sub>Los datos más antiguos se usan para entrenar y los más recientes para validar. Split estratificado en `ml_pipeline/src/preprocessing/preprocess.py`. Los artefactos (scaler_stats, feature_cols) se guardan en Blob container `processed/`.</sub> | | |
+| Preparar los datos para entrenar | Borja | 🟡 En curso |
+| <sub>Los datos más antiguos se usan para entrenar y✅ Hecho los más recientes para validar. Split estratificado en `ml_pipeline/src/preprocessing/preprocess.py`. Los artefactos (scaler_stats, feature_cols) se guardan en Blob container `processed/`.</sub> | | |
 | Entrenar y elegir el mejor modelo | ❓ Por asignar | ⚪ Pendiente |
 | <sub>Probamos Logistic Regression, Random Forest y XGBoost. Nos quedamos con el que mejor detecte fallos (métrica: Average Precision). Objetivo AUC-ROC ≥ 0.80. El modelo ganador se guarda en Blob `models/best_model.pkl` y se registra en **Azure ML Model Registry** vía MLflow. Ejecutar: `python pipeline.py`</sub> | | |
 | Explicar por qué falla cada entrega | Alejandro | ⚪ Pendiente |
