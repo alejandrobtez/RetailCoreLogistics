@@ -46,6 +46,13 @@ def run(df: pd.DataFrame, config: dict, azure_ctx=None) -> dict:
     containers = config["azure"]["storage"]["containers"]
 
     feature_cols = [c for c in df.columns if c not in exclude_cols]
+
+    # Descartar columnas no numéricas (object/string) que no se pueden castear a float32
+    non_numeric = [c for c in feature_cols if df[c].dtype == object]
+    if non_numeric:
+        logger.warning(f"   Columnas descartadas (no numéricas): {non_numeric}")
+        feature_cols = [c for c in feature_cols if c not in non_numeric]
+
     X = df[feature_cols].astype(np.float32)
     y = df[target].astype(np.float32)
 
