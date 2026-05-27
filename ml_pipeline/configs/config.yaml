@@ -58,7 +58,7 @@ paths:
 # Datos
 # ---------------------------------------------------------------------------
 data:
-  filename: "raw/deliveries_synthetic.csv"
+  filename: "raw/deliveries_with_aemet.csv"
   target: "delivery_failed"
   exclude_cols: ["delivery_id", "recipient_id", "delivery_failed"]
   test_size: 0.2
