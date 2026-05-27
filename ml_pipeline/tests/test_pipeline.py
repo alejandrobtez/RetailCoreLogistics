@@ -6,11 +6,11 @@ import numpy as np
 import pandas as pd
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.ingestion.ingest import validate_dataframe
+from src.data.bronze import validate_schema
+from src.data.silver import validate_quality
 from src.inference.predict import classify_risk, inject_weather_features
 from src.monitoring.drift import compute_psi
 
@@ -45,22 +45,41 @@ def risk_config():
 
 
 # =============================================================================
-# TESTS: INGESTA
+# TESTS: BRONZE — validación de esquema
 # =============================================================================
-class TestIngestion:
-    def test_validate_ok(self, sample_df):
-        validate_dataframe(sample_df)  # No debe lanzar
+class TestBronze:
+    def test_schema_ok(self, sample_df):
+        validate_schema(sample_df)  # no debe lanzar
 
-    def test_validate_missing_col(self, sample_df):
+    def test_schema_missing_col(self, sample_df):
         df = sample_df.drop(columns=["weather_rain"])
         with pytest.raises(ValueError, match="Columnas requeridas"):
-            validate_dataframe(df)
+            validate_schema(df)
 
-    def test_validate_only_one_class(self, sample_df):
+    def test_schema_multiple_missing(self, sample_df):
+        df = sample_df.drop(columns=["weather_rain", "driver_quality_score"])
+        with pytest.raises(ValueError, match="Columnas requeridas"):
+            validate_schema(df)
+
+
+# =============================================================================
+# TESTS: SILVER — limpieza y calidad de datos
+# =============================================================================
+class TestSilver:
+    def test_quality_ok(self, sample_df):
+        validate_quality(sample_df, target="delivery_failed")  # no debe lanzar
+
+    def test_quality_nulls_in_critical_col(self, sample_df):
+        df = sample_df.copy()
+        df.loc[0, "weather_rain"] = None
+        with pytest.raises(ValueError, match="Nulos en columnas"):
+            validate_quality(df, target="delivery_failed")
+
+    def test_quality_only_one_class(self, sample_df):
         df = sample_df.copy()
         df["delivery_failed"] = 0
         with pytest.raises(ValueError, match="solo tiene una clase"):
-            validate_dataframe(df)
+            validate_quality(df, target="delivery_failed")
 
 
 # =============================================================================
@@ -88,7 +107,6 @@ class TestInference:
         df_out = inject_weather_features(sample_df, weather, feature_cols)
         assert (df_out["weather_rain"] == 1.5).all()
         assert (df_out["weather_wind_speed"] == -0.3).all()
-        # Columna no en weather: no modificada
         assert not (df_out["weather_temperature"] == 1.5).all()
 
 
@@ -103,7 +121,7 @@ class TestMonitoring:
 
     def test_psi_different_distributions(self):
         expected = np.random.normal(0, 1, 1000)
-        actual = np.random.normal(5, 1, 1000)   # media muy diferente
+        actual = np.random.normal(5, 1, 1000)
         psi = compute_psi(expected, actual)
         assert psi > 0.2, f"PSI con distribuciones muy distintas debería ser >0.2, got {psi}"
 

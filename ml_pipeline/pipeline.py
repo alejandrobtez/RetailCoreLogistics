@@ -1,13 +1,14 @@
 """
 pipeline.py — Orquestador principal del ML Pipeline (Azure Edition)
 =============================================================================
-Pasos:
-  1. Ingesta       → lee CSV desde Azure Blob Storage
-  2. Preprocesado  → split, class weights, scaler stats
-  3. Entrenamiento → LR, RF, XGBoost
-  4. Evaluación    → selecciona el mejor modelo
-  5. Guardado      → Blob Storage + Azure SQL + MLflow Registry
-  [6. Inferencia   → opcional, o ejecutar predict.py por separado]
+Arquitectura medallion:
+  1. Bronze      → carga cruda desde Azure Blob Storage, persiste copia
+  2. Silver      → limpieza: tipos, nulos, dedup, validación
+  3. Gold        → feature engineering, split 70/10/20, scaler stats
+  4. Entrenamiento → LR, RF, XGBoost
+  5. Evaluación  → selecciona el mejor modelo
+  6. Guardado    → Blob Storage + Azure SQL + MLflow Registry
+  [7. Inferencia → opcional, o ejecutar predict.py por separado]
 
 Uso:
     python pipeline.py                                      # entrenamiento
@@ -28,8 +29,7 @@ sys.path.append(str(Path(__file__).resolve().parent))
 
 from src.utils import get_logger, load_config
 from src.azure.azure_client import AzureContext
-from src.ingestion import ingest
-from src.preprocessing import preprocess
+from src.data import bronze, silver, gold
 from src.training import train, save_model
 from src.evaluation import evaluate
 
@@ -38,7 +38,7 @@ logger = get_logger("pipeline")
 
 def run_training_pipeline(config: dict, azure_ctx: AzureContext) -> str:
     """
-    Ejecuta el pipeline de entrenamiento completo.
+    Ejecuta el pipeline de entrenamiento completo (Bronze → Silver → Gold → Train → Eval → Save).
     Retorna el blob_name del modelo guardado.
     """
     mlflow_cfg = config["azure"]["mlflow"]
@@ -52,24 +52,28 @@ def run_training_pipeline(config: dict, azure_ctx: AzureContext) -> str:
         logger.info(f"  MLflow Run ID: {run.info.run_id}")
         logger.info("=" * 60)
 
-        # ── 1. Ingesta ────────────────────────────────────────────────────
-        logger.info("\n[1/5] 📥 INGESTA (Azure Blob Storage)")
-        df = ingest.run(config, azure_ctx=azure_ctx)
+        # ── 1. Bronze: ingesta cruda ──────────────────────────────────────
+        logger.info("\n[1/6] 🥉 BRONZE — carga cruda desde Blob Storage")
+        df_raw = bronze.run(config, azure_ctx=azure_ctx)
 
-        # ── 2. Preprocesado ───────────────────────────────────────────────
-        logger.info("\n[2/5] 🔧 PREPROCESADO")
-        data = preprocess.run(df, config, azure_ctx=azure_ctx)
+        # ── 2. Silver: limpieza y validación ─────────────────────────────
+        logger.info("\n[2/6] 🥈 SILVER — limpieza y validación")
+        df_clean = silver.run(df_raw, config, azure_ctx=azure_ctx)
 
-        # ── 3. Entrenamiento ──────────────────────────────────────────────
-        logger.info("\n[3/5] 🧠 ENTRENAMIENTO")
+        # ── 3. Gold: feature engineering y splits ────────────────────────
+        logger.info("\n[3/6] 🥇 GOLD — feature engineering y splits")
+        data = gold.run(df_clean, config, azure_ctx=azure_ctx)
+
+        # ── 4. Entrenamiento ──────────────────────────────────────────────
+        logger.info("\n[4/6] 🧠 ENTRENAMIENTO")
         trained_models = train.run(data, config)
 
-        # ── 4. Evaluación ─────────────────────────────────────────────────
-        logger.info("\n[4/5] 📊 EVALUACIÓN")
+        # ── 5. Evaluación ─────────────────────────────────────────────────
+        logger.info("\n[5/6] 📊 EVALUACIÓN")
         eval_result = evaluate.run(trained_models, data, config, azure_ctx=azure_ctx)
 
-        # ── 5. Guardado ───────────────────────────────────────────────────
-        logger.info("\n[5/5] 💾 GUARDADO (Blob + SQL + MLflow)")
+        # ── 6. Guardado ───────────────────────────────────────────────────
+        logger.info("\n[6/6] 💾 GUARDADO (Blob + SQL + MLflow)")
         model_blob = save_model.run(eval_result, data, config, azure_ctx=azure_ctx)
 
         logger.info("\n" + "=" * 60)
@@ -103,7 +107,7 @@ def main():
     # Inferencia opcional
     if args.infer:
         from src.inference.predict import run as run_inference
-        logger.info(f"\n[6/6] 🚀 INFERENCIA BATCH — ciudad: {args.city}")
+        logger.info(f"\n[7/7] 🚀 INFERENCIA BATCH — ciudad: {args.city}")
         run_inference(config=config, azure_ctx=azure_ctx, city=args.city, use_aemet=True)
 
 

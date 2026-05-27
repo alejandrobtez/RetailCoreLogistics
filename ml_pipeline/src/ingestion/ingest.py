@@ -1,8 +1,11 @@
 """
-ingestion/ingest.py — Paso 1: carga desde Azure Blob Storage y validación
+ingestion/ingest.py — OBSOLETO
 =============================================================================
-Lee el CSV desde Azure Blob Storage (container raw-data).
-Fallback a disco local si Blob no está disponible (desarrollo).
+Supersedido por la arquitectura medallion:
+  src/data/bronze.py → carga cruda + validación de esquema
+  src/data/silver.py → limpieza y validación de calidad
+
+Conservado por compatibilidad. No se usa en pipeline.py.
 """
 import sys
 from pathlib import Path

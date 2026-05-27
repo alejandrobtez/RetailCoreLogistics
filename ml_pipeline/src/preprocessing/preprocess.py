@@ -1,7 +1,11 @@
 """
-preprocessing/preprocess.py — Paso 2: preprocesado y split
-Acepta DataFrame en memoria (ya leído desde Blob por ingest.py).
-Sube scaler_stats y feature_cols a Blob Storage.
+preprocessing/preprocess.py — OBSOLETO
+=============================================================================
+Supersedido por la arquitectura medallion:
+  src/data/silver.py → conversión de tipos, nulos, dedup
+  src/data/gold.py   → feature selection, split, scaler stats
+
+Conservado por compatibilidad. No se usa en pipeline.py.
 """
 import sys
 from pathlib import Path

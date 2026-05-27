@@ -34,9 +34,9 @@ Pipeline de ML desplegado sobre **Microsoft Azure**: datos en Blob Storage, hist
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Preparar los datos para entrenar | Borja | 🟡 En curso |
-| <sub>Los datos más antiguos se usan para entrenar y✅ Hecho los más recientes para validar. Split estratificado en `ml_pipeline/src/preprocessing/preprocess.py`. Los artefactos (scaler_stats, feature_cols) se guardan en Blob container `processed/`.</sub> | | |
-| Entrenar y elegir el mejor modelo | ❓ Por asignar | ⚪ Pendiente |
+| Preparar los datos para entrenar | Marta | ✅ Hecho |
+| <sub>Arquitectura medallion en `ml_pipeline/src/data/`: **Bronze** → carga cruda y validación de esquema; **Silver** → conversión de tipos, nulos y dedup; **Gold** → feature selection, split estratificado 70/10/20, class weights y scaler stats. Artefactos (scaler_stats, feature_cols) en Blob `processed/`.</sub> | | |
+| Entrenar y elegir el mejor modelo | Borja | ⚪ Pendiente |
 | <sub>Probamos Logistic Regression, Random Forest y XGBoost. Nos quedamos con el que mejor detecte fallos (métrica: Average Precision). Objetivo AUC-ROC ≥ 0.80. El modelo ganador se guarda en Blob `models/best_model.pkl` y se registra en **Azure ML Model Registry** vía MLflow. Ejecutar: `python pipeline.py`</sub> | | |
 | Explicar por qué falla cada entrega | Alejandro | ⚪ Pendiente |
 | <sub>Con SHAP el modelo no solo dice "esta entrega va a fallar" sino también por qué: "porque llueve, es reintento y es viernes por la tarde". Notebook: `ml_pipeline/shap_explainability.ipynb`. Eso es lo que verá el operador en el dashboard.</sub> | | |
@@ -47,8 +47,8 @@ Pipeline de ML desplegado sobre **Microsoft Azure**: datos en Blob Storage, hist
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Crear la API | Borja | ⚪ Pendiente |
-| <sub>FastAPI en `api/main.py`. Recibe la lista de entregas del día, llama al modelo cargado desde Blob Storage y devuelve probabilidad de fallo + motivo SHAP. Es el puente entre el modelo y el dashboard/SMS. Arrancar: `uvicorn api.main:app --reload`</sub> | | |
+| Crear la API | Borja | ✅ Hecho |
+| <sub>FastAPI en `api/main.py`. Endpoints: `POST /api/v1/predict` (batch con AEMET opcional), `GET /api/v1/health`, `GET /api/v1/model/info`. El modelo se carga desde Blob Storage al arrancar. SHAP pendiente de integrar (campo `shap_reason` reservado). Arrancar: `uvicorn api.main:app --reload`</sub> | | |
 | Automatizar la predicción diaria | Alejandro | ⚪ Pendiente |
 | <sub>Azure Function (o cron) que cada noche antes de las 7:00 AM lee los paquetes del día desde Blob `raw-data/`, llama a `src/inference/predict.py`, guarda resultados en Blob `reports/` y en **Azure SQL** tabla `delivery_predictions`. Sin intervención manual. Ver sección "Producción" más abajo.</sub> | | |
 | Avisar a los destinatarios de riesgo | Marta | ⚪ Pendiente |
@@ -90,8 +90,10 @@ Pipeline de ML desplegado sobre **Microsoft Azure**: datos en Blob Storage, hist
  
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  CAPA 1 · DATOS                                                 │
-│  Datos sintéticos + AEMET ──► Azure Blob Storage (raw-data/)   │
+│  CAPA 1 · DATOS — Medallion Architecture                        │
+│  🥉 Bronze → carga cruda + esquema    (raw-data/bronze/)        │
+│  🥈 Silver → limpieza + validación   (raw-data/silver/)         │
+│  🥇 Gold   → features + splits       (processed/)               │
 ├─────────────────────────────────────────────────────────────────┤
 │  CAPA 2 · MACHINE LEARNING  (Azure ML + MLflow)                 │
 │  XGBoost / RF ──► SHAP ──► Azure ML Registry ──► best_model.pkl│
@@ -119,6 +121,75 @@ Pipeline de ML desplegado sobre **Microsoft Azure**: datos en Blob Storage, hist
  
 ---
  
+## 🔌 API de predicciones
+
+```bash
+# Arrancar la API (desde la raíz del repo)
+uvicorn api.main:app --reload --port 8000
+
+# Docs interactivas → http://localhost:8000/docs
+```
+
+### Endpoints
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/v1/health` | Estado de la API y del modelo |
+| `GET` | `/api/v1/model/info` | Metadatos del modelo en producción |
+| `POST` | `/api/v1/predict` | Predicción batch con AEMET opcional |
+
+### Ejemplo de petición
+
+```bash
+curl -X POST http://localhost:8000/api/v1/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "city": "madrid",
+    "use_aemet": false,
+    "deliveries": [{
+      "delivery_id": "dlv_001",
+      "hour": 10,
+      "day_of_week": 0,
+      "is_holiday": 0,
+      "recipient_failure_rate": 0.31,
+      "num_previous_attempts": 1,
+      "driver_quality_score": 0.72,
+      "driver_delivery_load": 22,
+      "requires_signature": 0,
+      "is_fragile": 1,
+      "is_bulky": 0,
+      "weight_kg": 4.5,
+      "weather_rain": 1,
+      "weather_wind_speed": 3.2,
+      "weather_temperature": 11.0,
+      "is_retry": 1
+    }]
+  }'
+```
+
+### Respuesta
+
+```json
+{
+  "total": 1,
+  "high": 0,
+  "medium": 1,
+  "low": 0,
+  "model_name": "xgboost",
+  "predictions": [{
+    "delivery_id": "dlv_001",
+    "prob_fallo": 0.6712,
+    "risk_level": "MEDIUM",
+    "action": "CAMBIAR_FRANJA",
+    "shap_reason": null
+  }]
+}
+```
+
+> **Nota:** El campo `shap_reason` quedará relleno cuando Alejandro integre el módulo SHAP.
+
+---
+
 ## 🛠️ Setup rápido
  
 ```bash
@@ -224,6 +295,8 @@ az login   # el pipeline lee los secretos automáticamente
 | Dato | Recurso | Ruta / Tabla |
 |---|---|---|
 | Dataset original | Blob `raw-data` | `deliveries_features.csv` |
+| Capa Bronze | Blob `raw-data` | `bronze/deliveries_raw_YYYYMMDD.csv` |
+| Capa Silver | Blob `raw-data` | `silver/deliveries_clean_YYYYMMDD.csv` |
 | Paquetes del día | Blob `raw-data` | `today_packages_YYYY-MM-DD.csv` |
 | Scaler stats | Blob `processed` | `scaler_stats.pkl` |
 | Modelo entrenado | Blob `models` | `best_model.pkl` |
@@ -277,23 +350,28 @@ retailcore-predictor/
 │   └── schema.sql                    # Esquema PostgreSQL / Azure SQL
 │
 ├── 📂 ml_pipeline/
-│   ├── pipeline.py                   # Orquestador principal (Azure)
+│   ├── pipeline.py                   # Orquestador principal — Bronze→Silver→Gold→Train→Eval→Save
 │   ├── configs/config.yaml           # Configuración centralizada
 │   ├── src/
 │   │   ├── azure/azure_client.py     # Blob Storage + Azure SQL + Key Vault
-│   │   ├── ingestion/ingest.py       # Paso 1: lee desde Blob
-│   │   ├── preprocessing/            # Paso 2: split + artefactos a Blob
-│   │   ├── training/                 # Paso 3+5: entrenamiento + guardado
-│   │   ├── evaluation/               # Paso 4: métricas + reporte a Blob
-│   │   ├── inference/predict.py      # Paso 6: batch 6:50 AM + AEMET
+│   │   ├── data/
+│   │   │   ├── bronze.py             # Capa Bronze: carga cruda + validación esquema
+│   │   │   ├── silver.py             # Capa Silver: tipos, nulos, dedup
+│   │   │   └── gold.py               # Capa Gold: features, split 70/10/20, scaler stats
+│   │   ├── training/                 # Entrenamiento (LR, RF, XGBoost) + guardado
+│   │   ├── evaluation/               # Métricas + selección del mejor modelo
+│   │   ├── inference/predict.py      # Batch 6:50 AM + AEMET en tiempo real
 │   │   ├── aemet/aemet_client.py     # API AEMET (key desde Key Vault)
 │   │   └── monitoring/drift.py       # PSI drift → alertas Azure SQL
-│   └── tests/test_pipeline.py        # 10 tests unitarios
+│   └── tests/test_pipeline.py        # Tests unitarios: Bronze, Silver, Inferencia, Monitoring
 │
 ├── 📂 api/
-│   ├── main.py                       # FastAPI app
-│   ├── predict.py                    # Endpoint /predict
-│   └── scheduler.py                  # Job automático 6:45 AM
+│   ├── main.py                       # FastAPI app + lifespan (carga modelo al arrancar)
+│   ├── schemas.py                    # Pydantic: DeliveryRecord, BatchRequest, BatchResponse
+│   ├── routers/
+│   │   └── predict.py                # GET /health · GET /model/info · POST /predict
+│   └── services/
+│       └── predictor.py              # Singleton: carga modelo + lógica de predicción
 │
 ├── 📂 dashboard/
 │   └── retailcore.pbix               # Power BI report
