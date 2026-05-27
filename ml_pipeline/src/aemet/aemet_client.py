@@ -37,7 +37,7 @@ class AEMETClient:
         # → {"weather_rain": 0.0, "weather_wind_speed": 3.2, "weather_temperature": 18.5, ...}
     """
 
-    BASE_URL = "https://opendata.aemet.es/openapi/api"
+    BASE_URL = "https://opendata.aemet.es/opendata/api"  # CORRECTO: /opendata/api (no /openapi/api)
     RETRY_ATTEMPTS = 3
     RETRY_DELAY = 2  # segundos entre reintentos
 
