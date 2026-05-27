@@ -32,7 +32,7 @@ azure:
       drift_alerts: "drift_alerts"
 
   mlflow:
-    tracking_uri: ""
+    tracking_uri: "azureml://swedencentral.api.azureml.ms/mlflow/v1.0/subscriptions/4721a86d-41f8-4d7d-8bef-a7fd78462488/resourceGroups/BenitezBernaAlejandro/providers/Microsoft.MachineLearningServices/workspaces/logisticml"
     experiment_name: "retailcore-delivery-prediction"
     register_best_model: true
     model_name: "retailcore-best-model"
