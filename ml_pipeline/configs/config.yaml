@@ -8,68 +8,57 @@ project:
   description: "Predicción de fallos de entrega antes de las 7:00 AM"
 
 # ---------------------------------------------------------------------------
-# AZURE — Recursos centrales
-# Todas las credenciales van en variables de entorno o Azure Key Vault,
-# NUNCA hardcodeadas aquí.
+# AZURE — Recursos centrales e Infraestructura
 # ---------------------------------------------------------------------------
 azure:
-  subscription_id: ""                        # AZURE_SUBSCRIPTION_ID (env var)
-  resource_group: "rg-retailcore-ml"
+  subscription_id: "4721a86d-41f8-4d7d-8bef-a7fd78462488"
+  resource_group: "BenitezBernaAlejandro"
 
-  # Blob Storage — datos y modelos
   storage:
-    account_name: "stretailcoreml"           # AZURE_STORAGE_ACCOUNT (env var)
-    # connection_string → AZURE_STORAGE_CONNECTION_STRING (env var)
+    account_name: "logisticstoragegenai"
     containers:
-      raw_data: "raw-data"                   # CSVs originales
-      processed: "processed"                 # artefactos de preprocesado
-      models: "models"                       # modelos .pkl
-      reports: "reports"                     # predicciones diarias y métricas
+      raw_data: "data"
+      processed: "data"
+      models: "models"
+      reports: "reports"
 
-  # Azure SQL Database — historial de predicciones y métricas
-  sql:
-    server: "sql-retailcore-ml.database.windows.net"
-    database: "retailcore-predictions"
-    # connection_string → AZURE_SQL_CONNECTION_STRING (env var)
+  postgres:
+    server: "logistic-server.postgres.database.azure.com"
+    database: "logistic-predictions"
+    port: 5432
     tables:
-      predictions: "delivery_predictions"    # predicciones diarias
-      model_metrics: "model_metrics"         # métricas por run
-      drift_alerts: "drift_alerts"           # alertas de data drift
+      predictions: "delivery_predictions"
+      model_metrics: "model_metrics"
+      drift_alerts: "drift_alerts"
 
-  # MLflow sobre Azure ML (o tracking local con backend en Azure SQL)
   mlflow:
-    tracking_uri: ""                         # MLFLOW_TRACKING_URI (env var)
-    # Si está vacío, usa Azure ML Workspace como backend
+    tracking_uri: ""
     experiment_name: "retailcore-delivery-prediction"
     register_best_model: true
     model_name: "retailcore-best-model"
 
-  # Azure ML Workspace (opcional: para jobs remotos y Model Registry)
   ml_workspace:
-    name: "mlw-retailcore"
-    # autenticación via DefaultAzureCredential (Managed Identity en producción)
+    name: "logisticml"
 
-  # Key Vault — secretos (AEMET key, connection strings, etc.)
   key_vault:
-    name: "kv-retailcore-ml"
+    name: "logisticml7006738115"
     secrets:
       aemet_key: "aemet-api-key"
-      sql_conn: "sql-connection-string"
+      postgres_conn: "postgres-connection-string"
       storage_conn: "storage-connection-string"
 
 # ---------------------------------------------------------------------------
-# Paths locales — solo para caché temporal durante la ejecución
-# En producción todo lee/escribe contra Azure Blob
+# Paths locales
 # ---------------------------------------------------------------------------
 paths:
-  local_tmp: "/tmp/retailcore"               # caché local transitoria
+  local_tmp: "/tmp/retailcore"
   logs: "logs"
 
 # ---------------------------------------------------------------------------
 # Datos
 # ---------------------------------------------------------------------------
 data:
-  filename: "deliveries_features.csv"
+  filename: "raw/deliveries_synthetic.csv"
   target: "delivery_failed"
   exclude_cols: ["delivery_id", "recipient_id", "delivery_failed"]
   test_size: 0.2
@@ -77,11 +66,10 @@ data:
   random_state: 42
 
 # ---------------------------------------------------------------------------
-# AEMET
+# AEMET (Clima)
 # ---------------------------------------------------------------------------
 aemet:
   base_url: "https://opendata.aemet.es/openapi/api"
-  # api_key → Azure Key Vault secret "aemet-api-key"
   stations:
     madrid: "3195"
     barcelona: "0076"
