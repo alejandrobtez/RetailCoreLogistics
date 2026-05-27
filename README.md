@@ -23,7 +23,7 @@ Pipeline de ML desplegado sobre **Microsoft Azure**: datos en Blob Storage, hist
 |---|---|---|
 | Generar el dataset de entregas | Marta | ✅ Hecho |
 | <sub>Con Python generamos un fichero con ~500.000 entregas ficticias que incluyen: ciudad, zona, día de la semana, tipo de producto, si llovía, si fue primer intento o reintento, y si la entrega falló. La tasa de fallos ronda el 23%. Script: `data/generate_synthetic.py`</sub> | | |
-| Descargar datos meteorológicos | Marta | 🟡 En curso |
+| Descargar datos meteorológicos | Marta | ✅ Hecho |
 | <sub>Usamos la API gratuita de AEMET para descargar lluvia y temperatura histórica en Madrid, Barcelona, Valencia y Sevilla. La API key se guarda en **Azure Key Vault** (`aemet-api-key`). Script: `data/scraping_aemet.py`</sub> | | |
 | Subir dataset a Azure Blob Storage | Alejandro | ✅ Hecho |
 | <sub>Una vez generado el CSV, subirlo al container `raw` dentro de `data`</sub> | | |
