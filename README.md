@@ -36,7 +36,7 @@ Pipeline de ML desplegado sobre **Microsoft Azure**: datos en Blob Storage, hist
 |---|---|---|
 | Preparar los datos para entrenar | Marta | ✅ Hecho |
 | <sub>Arquitectura medallion en `ml_pipeline/src/data/`: **Bronze** → carga cruda y validación de esquema; **Silver** → conversión de tipos, nulos y dedup; **Gold** → feature selection, split estratificado 70/10/20, class weights y scaler stats. Artefactos (scaler_stats, feature_cols) en Blob `processed/`.</sub> | | |
-| Entrenar y elegir el mejor modelo | Borja | ⚪ Pendiente |
+| Entrenar y elegir el mejor modelo | Borja | 🟡 En curso |
 | <sub>Probamos Logistic Regression, Random Forest y XGBoost. Nos quedamos con el que mejor detecte fallos (métrica: Average Precision). Objetivo AUC-ROC ≥ 0.80. El modelo ganador se guarda en Blob `models/best_model.pkl` y se registra en **Azure ML Model Registry** vía MLflow. Ejecutar: `python pipeline.py`</sub> | | |
 | Explicar por qué falla cada entrega | Alejandro | ⚪ Pendiente |
 | <sub>Con SHAP el modelo no solo dice "esta entrega va a fallar" sino también por qué: "porque llueve, es reintento y es viernes por la tarde". Notebook: `ml_pipeline/shap_explainability.ipynb`. Eso es lo que verá el operador en el dashboard.</sub> | | |
@@ -47,7 +47,7 @@ Pipeline de ML desplegado sobre **Microsoft Azure**: datos en Blob Storage, hist
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Crear la API | Borja | ✅ Hecho |
+| Crear la API | Borja | 🟡 En curso |
 | <sub>FastAPI en `api/main.py`. Endpoints: `POST /api/v1/predict` (batch con AEMET opcional), `GET /api/v1/health`, `GET /api/v1/model/info`. El modelo se carga desde Blob Storage al arrancar. SHAP pendiente de integrar (campo `shap_reason` reservado). Arrancar: `uvicorn api.main:app --reload`</sub> | | |
 | Automatizar la predicción diaria | Alejandro | ⚪ Pendiente |
 | <sub>Azure Function (o cron) que cada noche antes de las 7:00 AM lee los paquetes del día desde Blob `raw-data/`, llama a `src/inference/predict.py`, guarda resultados en Blob `reports/` y en **Azure SQL** tabla `delivery_predictions`. Sin intervención manual. Ver sección "Producción" más abajo.</sub> | | |
