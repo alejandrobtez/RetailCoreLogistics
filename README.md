@@ -36,8 +36,8 @@ Pipeline de ML desplegado sobre **Microsoft Azure**: datos en Blob Storage, hist
 |---|---|---|
 | Preparar los datos para entrenar | Marta | ✅ Hecho |
 | <sub>Arquitectura medallion en `ml_pipeline/src/data/`: **Bronze** → carga cruda y validación de esquema; **Silver** → conversión de tipos, nulos y dedup; **Gold** → feature selection, split estratificado 70/10/20, class weights y scaler stats. Artefactos (scaler_stats, feature_cols) en Blob `processed/`.</sub> | | |
-| Entrenar y elegir el mejor modelo | Borja | 🟡 En curso |
-| <sub>Probamos Logistic Regression, Random Forest y XGBoost. Nos quedamos con el que mejor detecte fallos (métrica: Average Precision). Objetivo AUC-ROC ≥ 0.80. El modelo ganador se guarda en Blob `models/best_model.pkl` y se registra en **Azure ML Model Registry** vía MLflow. Ejecutar: `python pipeline.py`</sub> | | |
+| Entrenar y elegir el mejor modelo | Borja | ✅ Hecho |
+| <sub>Probamos Logistic Regression, Random Forest y XGBoost con 39 features (OHE de zona/producto, encodings cíclicos, interacciones). **Ganador: XGBoost** — AUC-ROC 0.744, Average Precision 0.489, Recall fallos 64%. El modelo se guarda en `models/best_model.pkl` y se registra en MLflow. Ejecutar: `cd ml_pipeline && python pipeline.py`</sub> | | |
 | Explicar por qué falla cada entrega | Alejandro | ⚪ Pendiente |
 | <sub>Con SHAP el modelo no solo dice "esta entrega va a fallar" sino también por qué: "porque llueve, es reintento y es viernes por la tarde". Notebook: `ml_pipeline/shap_explainability.ipynb`. Eso es lo que verá el operador en el dashboard.</sub> | | |
  
@@ -47,8 +47,8 @@ Pipeline de ML desplegado sobre **Microsoft Azure**: datos en Blob Storage, hist
  
 | Tarea | Responsable | Estado |
 |---|---|---|
-| Crear la API | Borja | 🟡 En curso |
-| <sub>FastAPI en `api/main.py`. Endpoints: `POST /api/v1/predict` (batch con AEMET opcional), `GET /api/v1/health`, `GET /api/v1/model/info`. El modelo se carga desde Blob Storage al arrancar. SHAP pendiente de integrar (campo `shap_reason` reservado). Arrancar: `uvicorn api.main:app --reload`</sub> | | |
+| Crear la API | Borja | ✅ Hecho |
+| <sub>FastAPI en `api/main.py`. Endpoints: `POST /api/v1/predict` (batch con AEMET opcional), `GET /api/v1/health`, `GET /api/v1/model/info`. El modelo se carga desde Blob Storage al arrancar (fallback local en `ml_pipeline/tmp/`). El predictor aplica el mismo feature engineering que el pipeline. SHAP pendiente de integrar (campo `shap_reason` reservado). Arrancar: `uvicorn api.main:app --reload`</sub> | | |
 | Automatizar la predicción diaria | Alejandro | ⚪ Pendiente |
 | <sub>Azure Function (o cron) que cada noche antes de las 7:00 AM lee los paquetes del día desde Blob `raw-data/`, llama a `src/inference/predict.py`, guarda resultados en Blob `reports/` y en **Azure SQL** tabla `delivery_predictions`. Sin intervención manual. Ver sección "Producción" más abajo.</sub> | | |
 | Avisar a los destinatarios de riesgo | Marta | ⚪ Pendiente |
@@ -148,13 +148,17 @@ curl -X POST http://localhost:8000/api/v1/predict \
     "use_aemet": false,
     "deliveries": [{
       "delivery_id": "dlv_001",
+      "date": "2024-05-28",
       "hour": 10,
       "day_of_week": 0,
       "is_holiday": 0,
+      "zone": "madrid",
+      "zone_type": "historic_center",
       "recipient_failure_rate": 0.31,
       "num_previous_attempts": 1,
       "driver_quality_score": 0.72,
       "driver_delivery_load": 22,
+      "product_type": "fragile",
       "requires_signature": 0,
       "is_fragile": 1,
       "is_bulky": 0,
@@ -194,11 +198,11 @@ curl -X POST http://localhost:8000/api/v1/predict \
  
 ```bash
 # 1. Clonar el repo
-git clone https://github.com/team/retailcore-predictor.git
-cd retailcore-predictor
+git clone https://github.com/alejandrobtez/RetailCoreLogistics.git
+cd RetailCoreLogistics
  
 # 2. Instalar dependencias
-pip install -r requirements.txt
+pip install -r ml_pipeline/requirements.txt
  
 # 3. Configurar variables de entorno
 cp .env.example .env
@@ -209,18 +213,20 @@ python data/generate_synthetic.py
  
 # 5. Subir dataset a Blob Storage
 az storage blob upload \
-  --container-name raw-data \
-  --name deliveries_features.csv \
-  --file deliveries_features.csv
+  --account-name logisticstoragegenai \
+  --container-name data \
+  --name raw/deliveries_synthetic.csv \
+  --file data/raw/deliveries_synthetic.csv
  
-# 6. Entrenar el modelo (lee desde Blob, guarda en Blob + Azure SQL + MLflow)
-python pipeline.py
+# 6. Entrenar el modelo (lee desde Blob, guarda en Blob + MLflow)
+cd ml_pipeline && python pipeline.py
  
-# 7. Lanzar la API
+# 7. Lanzar la API (desde la raíz del repo)
+cd ..
 uvicorn api.main:app --reload
  
 # 8. Ver experimentos MLflow
-mlflow ui --backend-store-uri mlruns   # → http://localhost:5000
+mlflow ui --backend-store-uri ml_pipeline/mlruns   # → http://localhost:5000
 ```
  
 ---
