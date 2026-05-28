@@ -48,14 +48,18 @@ def load_model() -> None:
         except Exception as e:
             logger.warning(f"Blob no disponible: {e}. Intentando disco local...")
 
-    # Buscar en la carpeta tmp/ relativa al directorio ml_pipeline
-    models_dir = _ML_PIPELINE / _config["paths"]["local_tmp"] / "models"
-    local_path = models_dir / "best_model.pkl"
-    if local_path.exists():
-        with open(local_path, "rb") as f:
-            _artifact = pickle.load(f)
-        logger.info(f"Modelo cargado desde disco local: {local_path}")
-        return
+    # Buscar en orden: tmp/ del pipeline → models/ de la raíz del repo
+    repo_root = _ML_PIPELINE.parent
+    candidate_paths = [
+        _ML_PIPELINE / _config["paths"]["local_tmp"] / "models" / "best_model.pkl",
+        repo_root / "models" / "best_model.pkl",
+    ]
+    for local_path in candidate_paths:
+        if local_path.exists():
+            with open(local_path, "rb") as f:
+                _artifact = pickle.load(f)
+            logger.info(f"Modelo cargado desde disco local: {local_path}")
+            return
 
     logger.warning(
         "Modelo no encontrado. Arranca el pipeline de entrenamiento antes de usar la API: "

@@ -4,6 +4,7 @@ __pycache__/
 .env
 *.pkl
 *.joblib
+!models/*.pkl
 mlruns/
 ml_pipeline/mlruns/
 logs/
