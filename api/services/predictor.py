@@ -6,6 +6,7 @@ en todas las peticiones (thread-safe para lectura en FastAPI async workers).
 """
 import pickle
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Optional
 
@@ -18,6 +19,7 @@ sys.path.insert(0, str(_ML_PIPELINE))
 
 from src.utils import get_logger, load_config
 from src.azure.azure_client import AzureContext
+from src.data.gold import engineer_features
 from src.inference.predict import classify_risk, inject_weather_features
 
 logger = get_logger("api.predictor")
@@ -46,7 +48,9 @@ def load_model() -> None:
         except Exception as e:
             logger.warning(f"Blob no disponible: {e}. Intentando disco local...")
 
-    local_path = Path(_config["paths"]["local_tmp"]) / "models" / "best_model.pkl"
+    # Buscar en la carpeta tmp/ relativa al directorio ml_pipeline
+    models_dir = _ML_PIPELINE / _config["paths"]["local_tmp"] / "models"
+    local_path = models_dir / "best_model.pkl"
     if local_path.exists():
         with open(local_path, "rb") as f:
             _artifact = pickle.load(f)
@@ -55,7 +59,7 @@ def load_model() -> None:
 
     logger.warning(
         "Modelo no encontrado. Arranca el pipeline de entrenamiento antes de usar la API: "
-        "python ml_pipeline/pipeline.py"
+        "cd ml_pipeline && python pipeline.py"
     )
 
 
@@ -98,6 +102,14 @@ def predict_batch(deliveries: list[dict], city: str, use_aemet: bool) -> list[di
     risk_config = _config["inference"]["risk_levels"]
 
     df = pd.DataFrame(deliveries)
+
+    # Rellenar date con hoy si no se proporcionó
+    today = date.today().strftime("%Y-%m-%d")
+    if "date" not in df.columns:
+        df["date"] = today
+    else:
+        df["date"] = df["date"].fillna(today)
+
     bool_cols = df.select_dtypes(include="bool").columns
     if len(bool_cols):
         df[bool_cols] = df[bool_cols].astype(np.float32)
@@ -114,6 +126,9 @@ def predict_batch(deliveries: list[dict], city: str, use_aemet: bool) -> list[di
             logger.info(f"Datos AEMET inyectados para {city}")
         except Exception as e:
             logger.warning(f"AEMET no disponible ({e}). Usando weather de la petición.")
+
+    # Aplicar el mismo feature engineering que se usó en el entrenamiento
+    df = engineer_features(df)
 
     missing = [f for f in feature_cols if f not in df.columns]
     if missing:

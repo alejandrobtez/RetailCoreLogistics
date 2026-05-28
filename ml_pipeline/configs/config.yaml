@@ -8,12 +8,15 @@ project:
   description: "Predicción de fallos de entrega antes de las 7:00 AM"
 
 # ---------------------------------------------------------------------------
-# AZURE — Recursos centrales e Infraestructura
+# AZURE — Recursos centrales
+# Todas las credenciales van en variables de entorno o Azure Key Vault,
+# NUNCA hardcodeadas aquí.
 # ---------------------------------------------------------------------------
 azure:
   subscription_id: "4721a86d-41f8-4d7d-8bef-a7fd78462488"
   resource_group: "BenitezBernaAlejandro"
 
+  # Blob Storage — datos y modelos
   storage:
     account_name: "logisticstoragegenai"
     containers:
@@ -22,6 +25,7 @@ azure:
       models: "models"
       reports: "reports"
 
+  # PostgreSQL — historial de predicciones y métricas
   postgres:
     server: "logistic-server.postgres.database.azure.com"
     database: "logistic-predictions"
@@ -31,15 +35,18 @@ azure:
       model_metrics: "model_metrics"
       drift_alerts: "drift_alerts"
 
+  # MLflow sobre Azure ML
   mlflow:
-    tracking_uri: "azureml://swedencentral.api.azureml.ms/mlflow/v1.0/subscriptions/4721a86d-41f8-4d7d-8bef-a7fd78462488/resourceGroups/BenitezBernaAlejandro/providers/Microsoft.MachineLearningServices/workspaces/logisticml"
+    tracking_uri: ""                         # vacío = mlruns/ local; en Azure ML se sobreescribe via env var MLFLOW_TRACKING_URI
     experiment_name: "retailcore-delivery-prediction"
     register_best_model: true
     model_name: "retailcore-best-model"
 
+  # Azure ML Workspace
   ml_workspace:
     name: "logisticml"
 
+  # Key Vault — secretos
   key_vault:
     name: "logisticml7006738115"
     secrets:
@@ -48,17 +55,18 @@ azure:
       storage_conn: "storage-connection-string"
 
 # ---------------------------------------------------------------------------
-# Paths locales
+# Paths locales — solo para caché temporal durante la ejecución
+# En producción todo lee/escribe contra Azure Blob
 # ---------------------------------------------------------------------------
 paths:
-  local_tmp: "/tmp/retailcore"
+  local_tmp: "tmp"                           # caché local transitoria (relativo al CWD)
   logs: "logs"
 
 # ---------------------------------------------------------------------------
 # Datos
 # ---------------------------------------------------------------------------
 data:
-  filename: "raw/deliveries_with_aemet.csv"
+  filename: "deliveries_synthetic.csv"
   target: "delivery_failed"
   exclude_cols: ["delivery_id", "recipient_id", "delivery_failed"]
   test_size: 0.2
@@ -66,10 +74,11 @@ data:
   random_state: 42
 
 # ---------------------------------------------------------------------------
-# AEMET (Clima)
+# AEMET
 # ---------------------------------------------------------------------------
 aemet:
   base_url: "https://opendata.aemet.es/openapi/api"
+  # api_key → Azure Key Vault secret "aemet-api-key"
   stations:
     madrid: "3195"
     barcelona: "0076"

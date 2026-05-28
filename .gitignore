@@ -5,5 +5,13 @@ __pycache__/
 *.pkl
 *.joblib
 mlruns/
+ml_pipeline/mlruns/
 logs/
+ml_pipeline/tmp/
+tmp/
+.ipynb_checkpoints/
+*.ipynb
+.DS_Store
+__MACOSX/
+data/raw/*.csv
 

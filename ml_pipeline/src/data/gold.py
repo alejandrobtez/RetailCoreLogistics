@@ -23,6 +23,47 @@ from src.utils import get_logger, save_pickle
 logger = get_logger("gold")
 
 
+def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Feature engineering aplicado entre Silver y Gold:
+      - Encoding cíclico: hour_sin/cos, dow_sin/cos
+      - Features de fecha: month, quarter
+      - OHE: zone, zone_type, product_type
+      - Interacciones: 5 términos de producto entre features clave
+    Elimina las columnas originales de las que se derivan los encodings.
+    """
+    df = df.copy()
+
+    # Encoding cíclico para hora y día de la semana
+    df["hour_sin"] = np.sin(2 * np.pi * df["hour"] / 24)
+    df["hour_cos"] = np.cos(2 * np.pi * df["hour"] / 24)
+    df["dow_sin"]  = np.sin(2 * np.pi * df["day_of_week"] / 7)
+    df["dow_cos"]  = np.cos(2 * np.pi * df["day_of_week"] / 7)
+
+    # Features de fecha desde la columna 'date'
+    if "date" in df.columns:
+        dates = pd.to_datetime(df["date"])
+        df["month"]   = dates.dt.month.astype(np.float32)
+        df["quarter"] = dates.dt.quarter.astype(np.float32)
+        df = df.drop(columns=["date"])
+
+    # OHE para columnas categóricas
+    for col in ["zone", "zone_type", "product_type"]:
+        if col in df.columns:
+            dummies = pd.get_dummies(df[col], prefix=col, drop_first=False, dtype=np.float32)
+            df = pd.concat([df, dummies], axis=1)
+            df = df.drop(columns=[col])
+
+    # Interacciones no lineales (ayudan a XGBoost a arrancar con mejores features)
+    df["load_x_rain"]    = df["driver_delivery_load"] * df["weather_rain"]
+    df["fragile_x_bulky"] = df["is_fragile"] * df["is_bulky"]
+    df["score_x_rfr"]    = df["driver_quality_score"] * df["recipient_failure_rate"]
+    df["score_x_load"]   = df["driver_quality_score"] * df["driver_delivery_load"]
+    df["rfr_x_retry"]    = df["recipient_failure_rate"] * df["is_retry"]
+
+    return df
+
+
 def _compute_scaler_stats(df: pd.DataFrame, feature_cols: list) -> dict:
     return {
         col: {"mean": float(df[col].mean()), "std": float(df[col].std())}
@@ -37,6 +78,10 @@ def run(df: pd.DataFrame, config: dict, azure_ctx=None) -> dict:
     Retorna dict con arrays listos para train/val/test.
     """
     logger.info("⚙️  Gold: preparando features para entrenamiento")
+
+    # Feature engineering antes de la selección de columnas
+    df = engineer_features(df)
+    logger.info(f"   Feature engineering aplicado: {df.shape[1]} columnas totales")
 
     target = config["data"]["target"]
     exclude_cols = config["data"]["exclude_cols"]

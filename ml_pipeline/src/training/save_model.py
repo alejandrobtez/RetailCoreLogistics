@@ -64,7 +64,10 @@ def run(eval_result: dict, data: dict, config: dict, azure_ctx=None) -> str:
         logger.info(f"⬆️  Modelo subido a Blob: {containers['models']}/{blob_name}")
         logger.info(f"⬆️  Alias subido a Blob:  {containers['models']}/{best_blob}")
     else:
-        logger.warning("⚠️  Blob Storage no disponible: modelo solo en local")
+        # Sin Blob: guardar alias canónico en local para que la API lo encuentre
+        best_local = tmp_dir / "best_model.pkl"
+        save_pickle(artifact, best_local)
+        logger.info(f"💾 Alias local: {best_local}")
 
     # ── Guardar métricas en Azure SQL ──────────────────────────────────────
     if azure_ctx and azure_ctx.sql:

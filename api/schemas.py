@@ -7,13 +7,29 @@ from pydantic import BaseModel, Field
 
 class DeliveryRecord(BaseModel):
     delivery_id: str
+    date: Optional[str] = Field(
+        default=None,
+        description="Fecha de la entrega YYYY-MM-DD (default: hoy). Usada para extraer mes y trimestre.",
+    )
     hour: int = Field(ge=0, le=23)
     day_of_week: int = Field(ge=0, le=6, description="0=Lunes … 6=Domingo")
     is_holiday: int = Field(ge=0, le=1)
+    zone: str = Field(
+        description="Ciudad: madrid | barcelona | valencia | sevilla",
+        pattern="^(madrid|barcelona|valencia|sevilla)$",
+    )
+    zone_type: str = Field(
+        description="Tipo de zona: residential | offices | historic_center | industrial",
+        pattern="^(residential|offices|historic_center|industrial)$",
+    )
     recipient_failure_rate: float = Field(ge=0.0, le=1.0)
     num_previous_attempts: int = Field(ge=0)
     driver_quality_score: float = Field(ge=0.0, le=1.0)
     driver_delivery_load: int = Field(ge=0)
+    product_type: str = Field(
+        description="Tipo de producto: standard | fragile | bulky | high_value | signature_required",
+        pattern="^(standard|fragile|bulky|high_value|signature_required)$",
+    )
     requires_signature: int = Field(ge=0, le=1)
     is_fragile: int = Field(ge=0, le=1)
     is_bulky: int = Field(ge=0, le=1)
@@ -25,13 +41,17 @@ class DeliveryRecord(BaseModel):
 
     model_config = {"json_schema_extra": {"example": {
         "delivery_id": "dlv_00000042",
+        "date": "2024-05-28",
         "hour": 10,
         "day_of_week": 0,
         "is_holiday": 0,
+        "zone": "madrid",
+        "zone_type": "historic_center",
         "recipient_failure_rate": 0.31,
         "num_previous_attempts": 1,
         "driver_quality_score": 0.72,
         "driver_delivery_load": 22,
+        "product_type": "fragile",
         "requires_signature": 0,
         "is_fragile": 1,
         "is_bulky": 0,

@@ -49,12 +49,17 @@ def run(config: dict, azure_ctx=None) -> pd.DataFrame:
             logger.warning(f"Blob no disponible: {e}. Intentando disco local...")
 
     if df is None:
-        local_path = Path(config["paths"]["local_tmp"]) / "raw" / filename
-        if not local_path.exists():
+        # Orden de búsqueda: tmp/raw/<filename> → data/raw/<filename> (raíz del proyecto)
+        candidate_paths = [
+            Path(config["paths"]["local_tmp"]) / "raw" / filename,
+            Path(__file__).resolve().parents[3] / "data" / "raw" / filename,
+        ]
+        local_path = next((p for p in candidate_paths if p.exists()), None)
+        if local_path is None:
+            searched = "\n  ".join(str(p) for p in candidate_paths)
             raise FileNotFoundError(
-                f"Dataset no encontrado en Blob ni en disco local ({local_path}).\n"
-                f"Sube el CSV a Blob: az storage blob upload "
-                f"--container-name {containers['raw_data']} --name {filename} --file {filename}"
+                f"Dataset '{filename}' no encontrado en Blob ni en disco.\n"
+                f"Rutas buscadas:\n  {searched}"
             )
         df = pd.read_csv(local_path)
         logger.info(f"📥 Bronze: leído desde disco local: {local_path}")
