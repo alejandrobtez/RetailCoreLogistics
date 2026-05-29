@@ -4,6 +4,8 @@ api/routers/predict.py — Endpoints de predicción
 from fastapi import APIRouter, HTTPException, status
 
 from api.schemas import (
+    AlertRequest,
+    AlertsResponse,
     BatchRequest,
     BatchResponse,
     HealthResponse,
@@ -11,6 +13,7 @@ from api.schemas import (
     PredictionResult,
 )
 from api.services import predictor
+from api.services.sms_alerts import process_batch_alerts, _get_logic_app_url
 
 router = APIRouter(prefix="/api/v1", tags=["predictions"])
 
@@ -70,4 +73,28 @@ def predict(request: BatchRequest):
         low=low,
         model_name=predictor.get_model_info().get("model_name", "unknown"),
         predictions=results,
+    )
+
+
+@router.post("/alerts/send", response_model=AlertsResponse)
+async def send_alerts(request: AlertRequest):
+    """
+    Envía SMS via Azure Logic Apps a todas las entregas con riesgo HIGH (prob >= 0.70).
+    Si LOGIC_APP_SMS_URL no está configurada, simula el envío para demo.
+    """
+    predictions_dicts = [
+        {**p.model_dump(), "zone": request.city}
+        for p in request.predictions
+    ]
+    alerts = await process_batch_alerts(predictions_dicts)
+
+    real      = sum(1 for a in alerts if not a["simulated"])
+    simulated = sum(1 for a in alerts if a["simulated"])
+
+    return AlertsResponse(
+        total_alerts=len(alerts),
+        real=real,
+        simulated=simulated,
+        logic_app_configured=_get_logic_app_url() is not None,
+        alerts=[dict(a) for a in alerts],
     )

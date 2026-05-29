@@ -102,6 +102,29 @@ class BatchResponse(BaseModel):
     predictions: list[PredictionResult]
 
 
+class AlertRequest(BaseModel):
+    predictions: list[PredictionResult] = Field(description="Lista de predicciones del batch")
+    city: str = Field(default="madrid")
+
+
+class AlertResult(BaseModel):
+    sent: bool
+    simulated: bool
+    delivery_id: str
+    phone: str
+    message: str
+    timestamp: str
+    detail: str
+
+
+class AlertsResponse(BaseModel):
+    total_alerts: int
+    real: int
+    simulated: int
+    logic_app_configured: bool
+    alerts: list[AlertResult]
+
+
 class HealthResponse(BaseModel):
     status: str
     model_loaded: bool

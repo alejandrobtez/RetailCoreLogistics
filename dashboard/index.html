@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RetailCore Logistics · Panel de Operaciones</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-brand">
+      <span class="header-icon">📦</span>
+      <div>
+        <h1>RetailCore Logistics</h1>
+        <p>Predictor de Fallos en Entrega · Madrid · Barcelona · Valencia · Sevilla</p>
+      </div>
+    </div>
+    <div class="header-status">
+      <div id="api-status" class="status-badge status-loading">
+        <span class="status-dot"></span>
+        <span id="status-text">Conectando…</span>
+      </div>
+      <div class="header-meta">
+        <span id="model-name-badge"></span>
+        <span id="last-update"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAV TABS -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" data-tab="panel">📊 Panel Operadores</button>
+    <button class="tab-btn" data-tab="mapa">🗺️ Mapa de Riesgo</button>
+    <button class="tab-btn" data-tab="prediccion">🔮 Nueva Predicción</button>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- ===== TAB: PANEL ===== -->
+    <section id="tab-panel" class="tab-section active">
+
+      <div class="stats-row">
+        <div class="stat-card stat-total">
+          <div class="stat-num" id="stat-total">—</div>
+          <div class="stat-label">Total Entregas</div>
+        </div>
+        <div class="stat-card stat-high">
+          <div class="stat-num" id="stat-high">—</div>
+          <div class="stat-label">🔴 Riesgo Alto</div>
+        </div>
+        <div class="stat-card stat-medium">
+          <div class="stat-num" id="stat-medium">—</div>
+          <div class="stat-label">🟡 Riesgo Medio</div>
+        </div>
+        <div class="stat-card stat-low">
+          <div class="stat-num" id="stat-low">—</div>
+          <div class="stat-label">🟢 Riesgo Bajo</div>
+        </div>
+        <div class="stat-card stat-sms">
+          <div class="stat-num" id="stat-sms">—</div>
+          <div class="stat-label">📱 SMS Enviados</div>
+        </div>
+      </div>
+
+      <div class="panel-toolbar">
+        <div class="toolbar-left">
+          <h2>Entregas del día — ordenadas por riesgo</h2>
+          <span id="panel-date" class="date-badge"></span>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn btn-outline" id="btn-demo">📂 Cargar datos demo</button>
+          <button class="btn btn-primary" id="btn-refresh" disabled>🔄 Actualizar</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="deliveries-table" id="deliveries-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>ID Entrega</th>
+              <th>Ciudad / Zona</th>
+              <th>Producto</th>
+              <th>Riesgo</th>
+              <th>Prob. Fallo</th>
+              <th>Motivo</th>
+              <th>Acción</th>
+              <th>Alerta SMS</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr class="empty-row">
+              <td colspan="9">
+                <div class="empty-state">
+                  <span>📭</span>
+                  <p>Sin datos todavía. Carga datos demo o crea una predicción nueva.</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- SMS LOG -->
+      <div id="sms-log" class="sms-log hidden">
+        <h3>📱 Registro de alertas SMS simuladas</h3>
+        <div id="sms-log-list"></div>
+      </div>
+
+    </section>
+
+    <!-- ===== TAB: MAPA ===== -->
+    <section id="tab-mapa" class="tab-section">
+
+      <div class="map-header">
+        <h2>Mapa de Zonas de Riesgo</h2>
+        <p>Concentración de entregas en riesgo por ciudad y tipo de zona</p>
+        <div class="map-legend">
+          <span class="legend-item legend-high">🔴 Alto (&gt;50%)</span>
+          <span class="legend-item legend-medium">🟡 Medio (20–50%)</span>
+          <span class="legend-item legend-low">🟢 Bajo (&lt;20%)</span>
+        </div>
+      </div>
+
+      <div class="map-layout">
+        <div id="map-container"></div>
+        <div class="map-sidebar">
+          <h3>Resumen por ciudad</h3>
+          <div id="city-cards"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ===== TAB: PREDICCIÓN ===== -->
+    <section id="tab-prediccion" class="tab-section">
+
+      <div class="pred-layout">
+
+        <div class="pred-form-col">
+          <h2>Añadir entrega para predecir</h2>
+          <form id="delivery-form" class="delivery-form">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Ciudad</label>
+                <select name="zone" required>
+                  <option value="madrid">Madrid</option>
+                  <option value="barcelona">Barcelona</option>
+                  <option value="valencia">Valencia</option>
+                  <option value="sevilla">Sevilla</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Tipo de zona</label>
+                <select name="zone_type" required>
+                  <option value="residential">Residencial</option>
+                  <option value="offices">Oficinas</option>
+                  <option value="historic_center">Centro histórico</option>
+                  <option value="industrial">Industrial</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Tipo de producto</label>
+                <select name="product_type" required>
+                  <option value="standard">Estándar</option>
+                  <option value="fragile">Frágil</option>
+                  <option value="bulky">Voluminoso</option>
+                  <option value="high_value">Alto valor</option>
+                  <option value="signature_required">Firma requerida</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Hora de entrega</label>
+                <input type="number" name="hour" min="0" max="23" value="10" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Peso (kg)</label>
+                <input type="number" name="weight_kg" min="0.1" step="0.1" value="2.5" required />
+              </div>
+              <div class="form-group">
+                <label>Nº intentos previos</label>
+                <input type="number" name="num_previous_attempts" min="0" max="10" value="0" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Tasa fallo destinatario <span class="hint">(0–1)</span></label>
+                <input type="range" name="recipient_failure_rate" min="0" max="1" step="0.01" value="0.2"
+                       oninput="document.getElementById('rfr-val').textContent=parseFloat(this.value).toFixed(2)" />
+                <span class="range-val" id="rfr-val">0.20</span>
+              </div>
+              <div class="form-group">
+                <label>Calidad conductor <span class="hint">(0–1)</span></label>
+                <input type="range" name="driver_quality_score" min="0" max="1" step="0.01" value="0.75"
+                       oninput="document.getElementById('dqs-val').textContent=parseFloat(this.value).toFixed(2)" />
+                <span class="range-val" id="dqs-val">0.75</span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Carga del conductor</label>
+                <input type="number" name="driver_delivery_load" min="1" max="60" value="20" required />
+              </div>
+              <div class="form-group">
+                <label>Temperatura (°C)</label>
+                <input type="number" name="weather_temperature" min="-10" max="45" value="18" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Viento (km/h)</label>
+                <input type="number" name="weather_wind_speed" min="0" max="100" step="0.1" value="5" />
+              </div>
+              <div class="form-group">
+                <label>Día de la semana</label>
+                <select name="day_of_week">
+                  <option value="0">Lunes</option>
+                  <option value="1">Martes</option>
+                  <option value="2">Miércoles</option>
+                  <option value="3">Jueves</option>
+                  <option value="4">Viernes</option>
+                  <option value="5">Sábado</option>
+                  <option value="6">Domingo</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-checkboxes">
+              <label class="checkbox-label">
+                <input type="checkbox" name="weather_rain" value="1" /> 🌧️ Lluvia
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="is_retry" value="1" /> 🔁 Es reintento
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="is_fragile" value="1" /> ⚠️ Frágil
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="is_bulky" value="1" /> 📦 Voluminoso
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="requires_signature" value="1" /> ✍️ Firma
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="is_holiday" value="1" /> 🎉 Festivo
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="use_aemet" value="1" /> 🌤️ Usar AEMET
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-secondary">➕ Añadir a la lista</button>
+              <button type="button" class="btn btn-outline" id="btn-add-demo-form">📂 Demo rápido</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="pred-queue-col">
+          <div class="queue-header">
+            <h2>Cola de predicción</h2>
+            <span id="queue-count" class="queue-badge">0 entregas</span>
+          </div>
+          <div id="queue-list" class="queue-list">
+            <div class="empty-state small">
+              <span>📋</span>
+              <p>Añade entregas al formulario</p>
+            </div>
+          </div>
+          <div class="queue-actions">
+            <button class="btn btn-primary" id="btn-predict" disabled>🔮 Predecir todas</button>
+            <button class="btn btn-danger" id="btn-clear-queue" disabled>🗑️ Vaciar cola</button>
+          </div>
+          <div id="pred-loading" class="pred-loading hidden">
+            <div class="spinner"></div>
+            <span>Consultando modelo XGBoost…</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <span>RetailCore Logistics · Tajamar Fight 2026</span>
+    <span>Modelo: XGBoost · AUC-ROC 0.744 · 18.000 paquetes/día</span>
+    <span>Equipo: Alejandro · Borja · <strong>Marta</strong></span>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

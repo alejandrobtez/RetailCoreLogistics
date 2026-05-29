@@ -134,9 +134,10 @@ def predict_batch(deliveries: list[dict], city: str, use_aemet: bool) -> list[di
     # Aplicar el mismo feature engineering que se usó en el entrenamiento
     df = engineer_features(df)
 
-    missing = [f for f in feature_cols if f not in df.columns]
-    if missing:
-        raise ValueError(f"Faltan features en la petición: {missing}")
+    # OHE columns not present in a small batch mean that category wasn't in the input → fill with 0
+    for col in feature_cols:
+        if col not in df.columns:
+            df[col] = np.float32(0)
 
     X = df[feature_cols].astype(np.float32).values
     y_prob = pipeline.predict_proba(X)[:, 1]
