@@ -84,6 +84,44 @@ def get_model_info() -> dict:
     }
 
 
+def get_raw_weather(city: str) -> dict:
+    """
+    Obtiene datos meteorológicos crudos (sin escalar) de AEMET para mostrar en el formulario.
+    Devuelve: weather_rain (0/1), weather_rain_mm, weather_wind_speed (m/s),
+              weather_temperature (°C), source (aemet|fallback).
+    """
+    if not _config:
+        raise RuntimeError("Configuración no disponible.")
+
+    thresholds = _config["aemet"]["thresholds"]
+    source = "aemet"
+
+    try:
+        from src.aemet.aemet_client import AEMETClient
+        aemet_key = _azure_ctx.get_aemet_key(_config) if _azure_ctx else None
+        client = AEMETClient(api_key=aemet_key)
+        observations = client.get_station_observations(_config["aemet"]["stations"][city])
+        raw = client._parse_observations(observations)
+        rain_mm = raw["weather_rain_raw"]
+        wind_ms = raw["weather_wind_speed_raw"]
+        temp_c = raw["weather_temperature_raw"]
+    except Exception as e:
+        logger.warning(f"AEMET no disponible para {city} ({e}). Usando fallback.")
+        source = "fallback"
+        rain_mm = 0.0
+        wind_ms = 2.0
+        temp_c = 18.0
+
+    return {
+        "city": city,
+        "weather_rain": 1 if rain_mm > thresholds["adverse_weather_rain_mm"] else 0,
+        "weather_rain_mm": round(rain_mm, 1),
+        "weather_wind_speed": round(wind_ms, 1),
+        "weather_temperature": round(temp_c, 1),
+        "source": source,
+    }
+
+
 def predict_batch(deliveries: list[dict], city: str, use_aemet: bool) -> list[dict]:
     """
     Ejecuta la inferencia sobre una lista de registros de entrega.

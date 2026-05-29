@@ -39,109 +39,181 @@ def build_sms_message(delivery_id: str, city: str, prob_fallo: float) -> str:
 
 def build_html_email(delivery_id: str, city: str, prob_fallo: float) -> str:
     pct = round(prob_fallo * 100)
-    color = "#ef4444" if prob_fallo >= 0.7 else "#f59e0b"
-    bar_width = pct
-    date_str = datetime.now().strftime("%d/%m/%Y %H:%M")
+    date_str = datetime.now().strftime("%d/%m/%Y · %H:%M")
     return f"""<!DOCTYPE html>
 <html lang="es">
-<head><meta charset="UTF-8"/></head>
-<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+</head>
+<body style="margin:0;padding:0;background:#f0f4f8;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
 
-        <!-- HEADER -->
-        <tr>
-          <td style="background:#1a2e4a;padding:28px 32px;">
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td>
-                  <div style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">📦 RetailCore Logistics</div>
-                  <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Sistema de predicción de entregas · Alerta automática</div>
-                </td>
-                <td align="right">
-                  <span style="background:{color};color:#fff;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;">🔴 RIESGO ALTO</span>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f8;padding:40px 16px;">
+  <tr><td align="center">
+  <table width="580" cellpadding="0" cellspacing="0" style="max-width:580px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.10);">
 
-        <!-- BODY -->
-        <tr>
-          <td style="padding:32px;">
-
-            <p style="font-size:16px;color:#1e293b;margin:0 0 8px 0;">Estimado destinatario,</p>
-            <p style="font-size:14px;color:#475569;margin:0 0 24px 0;">
-              Nuestro sistema de inteligencia artificial ha detectado que su entrega de hoy tiene una
-              <strong style="color:{color};">alta probabilidad de fallo</strong>.
-              Le proponemos cambiar la franja horaria para garantizar la recepción.
-            </p>
-
-            <!-- CARD ENTREGA -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:24px;">
-              <tr>
-                <td style="padding:20px 24px;">
-                  <div style="font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Detalles de la entrega</div>
-                  <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                      <td style="padding:5px 0;font-size:13px;color:#64748b;width:160px;">ID de entrega</td>
-                      <td style="padding:5px 0;font-size:13px;font-weight:700;color:#1e293b;">{delivery_id}</td>
-                    </tr>
-                    <tr>
-                      <td style="padding:5px 0;font-size:13px;color:#64748b;">Ciudad</td>
-                      <td style="padding:5px 0;font-size:13px;font-weight:700;color:#1e293b;">{city.capitalize()}</td>
-                    </tr>
-                    <tr>
-                      <td style="padding:5px 0;font-size:13px;color:#64748b;">Fecha</td>
-                      <td style="padding:5px 0;font-size:13px;font-weight:700;color:#1e293b;">{date_str}</td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-            </table>
-
-            <!-- BARRA DE RIESGO -->
-            <div style="margin-bottom:24px;">
-              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                <span style="font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Probabilidad de fallo</span>
-                <span style="font-size:18px;font-weight:800;color:{color};">{pct}%</span>
+    <!-- ░░ HEADER GRADIENTE ░░ -->
+    <tr>
+      <td style="background:linear-gradient(135deg,#1a2e4a 0%,#1e4080 60%,#2563eb 100%);padding:36px 40px 28px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td>
+              <div style="font-size:11px;font-weight:700;color:#93c5fd;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px;">Sistema de Predicción de Entregas</div>
+              <div style="font-size:26px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;line-height:1.2;">📦 RetailCore<br/>Logistics</div>
+            </td>
+            <td align="right" valign="top">
+              <div style="background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.25);border-radius:12px;padding:14px 18px;text-align:center;min-width:80px;">
+                <div style="font-size:32px;font-weight:900;color:#fbbf24;line-height:1;">{pct}%</div>
+                <div style="font-size:10px;color:#fde68a;font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:0.08em;">Riesgo fallo</div>
               </div>
-              <div style="background:#e2e8f0;border-radius:999px;height:10px;overflow:hidden;">
-                <div style="background:{color};width:{bar_width}%;height:100%;border-radius:999px;"></div>
-              </div>
-            </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
 
-            <!-- CTA -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;margin-bottom:24px;">
-              <tr>
-                <td style="padding:16px 20px;">
-                  <div style="font-size:13px;color:#9a3412;font-weight:600;">💡 ¿Qué puede hacer?</div>
-                  <ul style="margin:8px 0 0 0;padding-left:18px;font-size:13px;color:#7c2d12;line-height:1.7;">
-                    <li>Responder a este email confirmando que estará disponible</li>
-                    <li>Indicarnos una franja horaria alternativa (mañana / tarde)</li>
-                    <li>Solicitar entrega en punto de recogida cercano</li>
-                  </ul>
-                </td>
-              </tr>
-            </table>
+    <!-- ░░ BANDA DE ALERTA ░░ -->
+    <tr>
+      <td style="background:linear-gradient(90deg,#ef4444,#dc2626);padding:12px 40px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td>
+              <span style="font-size:13px;font-weight:700;color:#ffffff;letter-spacing:0.04em;">🔴 &nbsp;ALERTA DE RIESGO ALTO — ENTREGA EN PELIGRO</span>
+            </td>
+            <td align="right">
+              <span style="font-size:11px;color:#fecaca;">{date_str}</span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
 
-          </td>
-        </tr>
+    <!-- ░░ CUERPO ░░ -->
+    <tr>
+      <td style="padding:36px 40px 0;">
 
-        <!-- FOOTER -->
-        <tr>
-          <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 32px;">
-            <p style="font-size:11px;color:#94a3b8;margin:0;text-align:center;">
-              Este mensaje ha sido generado automáticamente por <strong>RetailCore Logistics AI</strong> ·
-              XGBoost · AUC-ROC 0.744 · Tajamar 2026
-            </p>
-          </td>
-        </tr>
+        <p style="font-size:16px;color:#1e293b;font-weight:600;margin:0 0 6px 0;">Estimado destinatario,</p>
+        <p style="font-size:14px;color:#64748b;line-height:1.7;margin:0 0 28px 0;">
+          Nuestro sistema de inteligencia artificial ha analizado los factores de su entrega y ha detectado
+          una <strong style="color:#dc2626;">alta probabilidad de fallo</strong>. Para garantizar que reciba
+          su paquete, le proponemos reagendar la franja horaria.
+        </p>
 
-      </table>
-    </td></tr>
+        <!-- CARD DETALLES -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:28px;overflow:hidden;">
+          <tr>
+            <td style="background:#1e293b;padding:12px 20px;">
+              <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.1em;">📋 &nbsp;Detalles de la entrega</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:14px 20px;font-size:13px;color:#64748b;border-bottom:1px solid #f1f5f9;width:45%;">ID de entrega</td>
+                  <td style="padding:14px 20px;font-size:13px;font-weight:700;color:#1e293b;border-bottom:1px solid #f1f5f9;"><span style="background:#dbeafe;color:#1d4ed8;padding:2px 10px;border-radius:999px;font-size:12px;">{delivery_id}</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 20px;font-size:13px;color:#64748b;border-bottom:1px solid #f1f5f9;">Ciudad</td>
+                  <td style="padding:14px 20px;font-size:13px;font-weight:700;color:#1e293b;border-bottom:1px solid #f1f5f9;">📍 {city.capitalize()}</td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 20px;font-size:13px;color:#64748b;">Generado el</td>
+                  <td style="padding:14px 20px;font-size:13px;font-weight:700;color:#1e293b;">{date_str}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- BARRA DE RIESGO -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+          <tr>
+            <td>
+              <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Probabilidad de fallo estimada</div>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="background:#fee2e2;border-radius:999px;height:14px;overflow:hidden;">
+                    <div style="background:linear-gradient(90deg,#f87171,#dc2626);width:{pct}%;height:14px;border-radius:999px;"></div>
+                  </td>
+                  <td style="width:52px;padding-left:12px;font-size:20px;font-weight:900;color:#dc2626;">{pct}%</td>
+                </tr>
+              </table>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px;">
+                <tr>
+                  <td style="font-size:10px;color:#94a3b8;">0%</td>
+                  <td align="center" style="font-size:10px;color:#f59e0b;">⚠️ Umbral (70%)</td>
+                  <td align="right" style="font-size:10px;color:#94a3b8;">100%</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- OPCIONES -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1px solid #fde68a;border-radius:12px;margin-bottom:28px;">
+          <tr>
+            <td style="padding:20px 24px;">
+              <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:12px;">💡 ¿Qué puede hacer?</div>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:5px 0;font-size:13px;color:#78350f;line-height:1.6;">✅ &nbsp;Confirmar disponibilidad respondiendo a este email</td>
+                </tr>
+                <tr>
+                  <td style="padding:5px 0;font-size:13px;color:#78350f;line-height:1.6;">🕐 &nbsp;Indicarnos una franja alternativa: mañana (9–14h) o tarde (16–20h)</td>
+                </tr>
+                <tr>
+                  <td style="padding:5px 0;font-size:13px;color:#78350f;line-height:1.6;">📦 &nbsp;Solicitar entrega en punto de recogida cercano</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- BOTONES CTA -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:36px;">
+          <tr>
+            <td align="center" style="padding-right:8px;" width="50%">
+              <a href="mailto:logistica@retailcore.es?subject=Confirmo disponibilidad - {delivery_id}&body=Confirmo que estare disponible para recibir mi entrega {delivery_id}."
+                 style="display:block;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#ffffff;text-decoration:none;font-size:13px;font-weight:700;padding:14px 20px;border-radius:10px;text-align:center;">
+                ✅ Confirmar disponibilidad
+              </a>
+            </td>
+            <td align="center" style="padding-left:8px;" width="50%">
+              <a href="mailto:logistica@retailcore.es?subject=Cambio de franja - {delivery_id}&body=Para la entrega {delivery_id}, prefiero la siguiente franja horaria:"
+                 style="display:block;background:#ffffff;color:#1e293b;text-decoration:none;font-size:13px;font-weight:700;padding:14px 20px;border-radius:10px;text-align:center;border:1.5px solid #e2e8f0;">
+                🕐 Cambiar franja horaria
+              </a>
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+
+    <!-- ░░ FOOTER ░░ -->
+    <tr>
+      <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 40px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td>
+              <p style="font-size:11px;color:#94a3b8;margin:0;line-height:1.6;">
+                Generado automáticamente por <strong style="color:#64748b;">RetailCore Logistics AI</strong><br/>
+                Modelo XGBoost · AUC-ROC 0.744 · Tajamar 2026
+              </p>
+            </td>
+            <td align="right">
+              <span style="font-size:20px;">📦</span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
   </table>
+  </td></tr>
+  </table>
+
 </body>
 </html>"""
 

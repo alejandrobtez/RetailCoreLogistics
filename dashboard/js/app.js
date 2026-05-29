@@ -129,42 +129,144 @@ async function loadDemoData() {
   await sendAndRender(deliveries, 'madrid', false);
 }
 
+// ── AEMET STATE ───────────────────────────────────────────
+let _lastWeather = { weather_rain: 0, weather_wind_speed: 2.0, weather_temperature: 18.0, source: 'fallback' };
+
+async function fetchAndFillWeather(city) {
+  const indicator = document.getElementById('aemet-indicator');
+  if (indicator) { indicator.textContent = '⏳ Cargando datos AEMET…'; indicator.className = 'aemet-indicator loading'; }
+
+  try {
+    const res = await fetch(`${API_BASE}/weather/${city}`);
+    if (!res.ok) throw new Error(res.statusText);
+    const data = await res.json();
+    _lastWeather = data;
+
+    const rainIcon = data.weather_rain ? '🌧️ Lluvia' : '☀️ Sin lluvia';
+    const tag = data.source === 'aemet' ? '🌤️ AEMET en tiempo real' : '⚠️ Fallback';
+    const detail = `${rainIcon} · 💨 ${data.weather_wind_speed} m/s · 🌡️ ${data.weather_temperature}°C`;
+    if (indicator) {
+      indicator.innerHTML = `<strong>${tag}</strong> &mdash; ${detail}`;
+      indicator.className = `aemet-indicator ${data.source === 'aemet' ? 'ok' : 'fallback'}`;
+    }
+  } catch (e) {
+    if (indicator) { indicator.textContent = '❌ No se pudo obtener datos de AEMET'; indicator.className = 'aemet-indicator error'; }
+  }
+}
+
+// ── DATE PICKER ───────────────────────────────────────────
+const DAY_NAMES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+function dateToDeliveryFields(dateStr) {
+  if (!dateStr) return { date: null, day_of_week: null };
+  const d = new Date(dateStr + 'T12:00:00');
+  const jsDay = d.getDay();                         // 0=Sun
+  const day_of_week = jsDay === 0 ? 6 : jsDay - 1; // 0=Mon…6=Sun
+  return { date: dateStr, day_of_week };
+}
+
+function initDatePicker() {
+  const input = document.getElementById('delivery-date');
+  if (!input) return;
+  input.valueAsDate = new Date();
+  updateDayHint(input.value);
+  input.addEventListener('change', () => updateDayHint(input.value));
+}
+
+function updateDayHint(dateStr) {
+  const hint = document.getElementById('day-of-week-hint');
+  if (!hint || !dateStr) return;
+  const d = new Date(dateStr + 'T12:00:00');
+  hint.textContent = DAY_NAMES[d.getDay()];
+}
+
 // ── PREDICTION QUEUE ──────────────────────────────────────
 function setupForm() {
-  document.getElementById('delivery-form').addEventListener('submit', (e) => {
+  const form       = document.getElementById('delivery-form');
+  const citySelect = form.querySelector('[name="zone"]');
+
+  // Cargar AEMET al cambiar ciudad
+  citySelect.addEventListener('change', () => fetchAndFillWeather(citySelect.value));
+
+  // Cargar AEMET al abrir el tab de predicción
+  fetchAndFillWeather(citySelect.value);
+
+  initDatePicker();
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
     const d  = buildDeliveryFromForm(fd);
+    await saveDeliveryToCSV(d);
     addToQueue(d);
     e.target.reset();
-    document.getElementById('rfr-val').textContent = '0.20';
-    document.getElementById('dqs-val').textContent = '0.75';
+    initDatePicker();
+    fetchAndFillWeather(citySelect.value);
   });
 }
 
 function buildDeliveryFromForm(fd) {
+  const dateStr = fd.get('delivery_date') || new Date().toISOString().split('T')[0];
+  const { date, day_of_week } = dateToDeliveryFields(dateStr);
+  const isRetry = fd.get('is_retry') ? 1 : 0;
+
   return {
     delivery_id: `DLV-CUSTOM-${String(state.counter++).padStart(3,'0')}`,
-    date: new Date().toISOString().split('T')[0],
+    date: date,
     hour: parseInt(fd.get('hour') || 10),
-    day_of_week: parseInt(fd.get('day_of_week') || 0),
+    day_of_week: day_of_week ?? 0,
     is_holiday: fd.get('is_holiday') ? 1 : 0,
     zone: fd.get('zone'),
     zone_type: fd.get('zone_type'),
-    recipient_failure_rate: parseFloat(fd.get('recipient_failure_rate') || 0.2),
-    num_previous_attempts: parseInt(fd.get('num_previous_attempts') || 0),
-    driver_quality_score: parseFloat(fd.get('driver_quality_score') || 0.75),
+    recipient_failure_rate: 0.2,
+    num_previous_attempts: isRetry,
+    driver_quality_score: 0.75,
     driver_delivery_load: parseInt(fd.get('driver_delivery_load') || 20),
     product_type: fd.get('product_type'),
     requires_signature: fd.get('requires_signature') ? 1 : 0,
     is_fragile: fd.get('is_fragile') ? 1 : 0,
     is_bulky: fd.get('is_bulky') ? 1 : 0,
     weight_kg: parseFloat(fd.get('weight_kg') || 2.0),
-    weather_rain: fd.get('weather_rain') ? 1 : 0,
-    weather_wind_speed: parseFloat(fd.get('weather_wind_speed') || 5),
-    weather_temperature: parseFloat(fd.get('weather_temperature') || 18),
-    is_retry: fd.get('is_retry') ? 1 : 0,
+    weather_rain: _lastWeather.weather_rain,
+    weather_wind_speed: _lastWeather.weather_wind_speed,
+    weather_temperature: _lastWeather.weather_temperature,
+    is_retry: isRetry,
   };
+}
+
+async function saveDeliveryToCSV(delivery) {
+  try {
+    const payload = {
+      delivery_id: delivery.delivery_id,
+      date: delivery.date,
+      hour: delivery.hour,
+      day_of_week: delivery.day_of_week,
+      is_holiday: delivery.is_holiday,
+      zone: delivery.zone,
+      zone_type: delivery.zone_type,
+      product_type: delivery.product_type,
+      requires_signature: delivery.requires_signature,
+      is_fragile: delivery.is_fragile,
+      is_bulky: delivery.is_bulky,
+      weight_kg: delivery.weight_kg,
+      driver_delivery_load: delivery.driver_delivery_load,
+      is_retry: delivery.is_retry,
+      weather_rain: delivery.weather_rain,
+      weather_wind_speed: delivery.weather_wind_speed,
+      weather_temperature: delivery.weather_temperature,
+    };
+    const res = await fetch(`${API_BASE}/deliveries/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      console.log(`Guardado en CSV. Total filas: ${data.csv_rows}`);
+    }
+  } catch (e) {
+    console.warn('No se pudo guardar en CSV:', e.message);
+  }
 }
 
 function addToQueue(delivery) {
@@ -198,7 +300,10 @@ function renderQueue() {
         <span class="queue-item-id">${d.delivery_id}</span>
         <span class="queue-item-meta">${capitalize(d.zone)} · ${humanZoneType(d.zone_type)} · ${capitalize(d.product_type)}</span>
       </div>
-      <button class="queue-item-remove" data-idx="${i}" title="Quitar">✕</button>
+      <div class="queue-item-actions">
+        <button class="queue-item-edit" data-idx="${i}" title="Editar">✏️</button>
+        <button class="queue-item-remove" data-idx="${i}" title="Eliminar">🗑️</button>
+      </div>
     </div>
   `).join('');
 
@@ -208,6 +313,44 @@ function renderQueue() {
       renderQueue();
     });
   });
+
+  list.querySelectorAll('.queue-item-edit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      const d = state.queue[idx];
+      fillFormWithDelivery(d);
+      state.queue.splice(idx, 1);
+      renderQueue();
+    });
+  });
+}
+
+function fillFormWithDelivery(d) {
+  const form = document.getElementById('delivery-form');
+  form.querySelector('[name="zone"]').value      = d.zone || 'madrid';
+  form.querySelector('[name="zone_type"]').value = d.zone_type || 'residential';
+  form.querySelector('[name="product_type"]').value = d.product_type || 'standard';
+  form.querySelector('[name="hour"]').value      = d.hour ?? 10;
+  form.querySelector('[name="weight_kg"]').value = d.weight_kg ?? 2.5;
+  form.querySelector('[name="driver_delivery_load"]').value = d.driver_delivery_load ?? 20;
+
+  if (d.date) {
+    form.querySelector('[name="delivery_date"]').value = d.date;
+    updateDayHint(d.date);
+  }
+
+  form.querySelector('[name="is_retry"]').checked          = !!d.is_retry;
+  form.querySelector('[name="is_fragile"]').checked        = !!d.is_fragile;
+  form.querySelector('[name="is_bulky"]').checked          = !!d.is_bulky;
+  form.querySelector('[name="requires_signature"]').checked = !!d.requires_signature;
+  form.querySelector('[name="is_holiday"]').checked        = !!d.is_holiday;
+
+  // Recargar AEMET para la ciudad cargada
+  fetchAndFillWeather(d.zone || 'madrid');
+
+  // Ir al tab de predicción y hacer scroll al formulario
+  document.querySelector('[data-tab="prediccion"]').click();
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function addDemoToQueue() {
@@ -222,9 +365,7 @@ async function runPrediction() {
   loading.classList.remove('hidden');
   const deliveries = [...state.queue];
   const city = deliveries[0]?.zone || 'madrid';
-  await sendAndRender(deliveries, city, false);
-  state.queue = [];
-  renderQueue();
+  await sendAndRender(deliveries, city, true);
   loading.classList.add('hidden');
   // Switch to panel tab
   document.querySelector('[data-tab="panel"]').click();
@@ -271,7 +412,7 @@ function renderPanel(enriched) {
     const pct      = (row.prob_fallo * 100).toFixed(1);
     const barColor = level === 'HIGH' ? 'var(--high)' : level === 'MEDIUM' ? 'var(--medium)' : 'var(--low)';
     const reason   = row.shap_reason || buildReasonText(row);
-    const smsCellHtml = level === 'HIGH' ? smsCell(row.delivery_id) : '<span style="color:var(--text-muted);font-size:.7rem">—</span>';
+    const smsCellHtml = level === 'HIGH' ? smsCell(row.delivery_id, row.prob_fallo, row.zone || 'madrid') : '<span style="color:var(--text-muted);font-size:.7rem">—</span>';
 
     tbody.insertAdjacentHTML('beforeend', `
       <tr class="${rowClass}" data-id="${escHtml(row.delivery_id)}">
@@ -299,32 +440,35 @@ function renderPanel(enriched) {
   });
 }
 
-function smsCell(id) {
+function smsCell(id, prob, zone) {
   if (state.smsSent.has(id)) {
     return `<span class="sms-sent">✓ SMS enviado</span>`;
   }
-  return `<button class="sms-btn" data-id="${escHtml(id)}">📱 Enviar SMS</button>`;
+  return `<button class="sms-btn" data-id="${escHtml(id)}" data-prob="${prob}" data-zone="${escHtml(zone)}">📱 Enviar SMS</button>`;
 }
 
 async function simulateSms(deliveryId) {
   const btn = document.querySelector(`.sms-btn[data-id="${deliveryId}"]`);
   if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
 
+  const prob_fallo = btn ? parseFloat(btn.dataset.prob) : 0.9;
+  const zone       = btn ? btn.dataset.zone : 'madrid';
   const row = state.predictions.find(p => p.delivery_id === deliveryId);
+
   try {
     const res = await fetch(`${API_BASE}/alerts/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        city: row?.zone || 'madrid',
-        predictions: [{ delivery_id: deliveryId, prob_fallo: row?.prob_fallo || 0.9, risk_level: 'HIGH', action: 'REAGENDAR_SMS', shap_reason: null }],
+        city: zone,
+        predictions: [{ delivery_id: deliveryId, prob_fallo, risk_level: 'HIGH', action: 'REAGENDAR_SMS', shap_reason: null }],
       }),
     });
     const data = await res.json();
     const alert = data.alerts?.[0];
     state.smsSent.add(deliveryId);
     if (btn) btn.parentElement.innerHTML = `<span class="sms-sent">✓ SMS ${alert?.simulated ? 'simulado' : 'enviado'}</span>`;
-    appendSmsLog(alert, row);
+    appendSmsLog(alert, { ...row, prob_fallo, zone });
   } catch (e) {
     if (btn) { btn.disabled = false; btn.textContent = '📱 Enviar SMS'; }
     console.error('Error enviando alerta:', e);

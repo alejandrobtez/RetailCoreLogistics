@@ -556,16 +556,22 @@ body {
 .queue-item-id   { font-weight: 700; color: var(--text); }
 .queue-item-meta { color: var(--text-muted); }
 
-.queue-item-remove {
+.queue-item-actions { display: flex; gap: .3rem; align-items: center; }
+
+.queue-item-edit, .queue-item-remove {
   background: none;
   border: none;
-  color: var(--high);
   cursor: pointer;
   font-size: .9rem;
-  padding: .2rem;
+  padding: .25rem .3rem;
   border-radius: 4px;
   line-height: 1;
+  transition: background .15s;
 }
+.queue-item-edit   { color: var(--accent); }
+.queue-item-edit:hover   { background: #dbeafe; }
+.queue-item-remove { color: var(--high); }
+.queue-item-remove:hover { background: #fee2e2; }
 
 .queue-actions { display: flex; gap: .5rem; margin-bottom: .75rem; }
 
@@ -603,6 +609,31 @@ body {
   font-size: .72rem;
 }
 .footer strong { color: var(--accent); }
+
+/* ── AEMET INDICATOR ─────────────────────────────────────── */
+.form-group--aemet { display: flex; flex-direction: column; justify-content: flex-start; }
+
+.aemet-indicator {
+  font-size: .78rem;
+  padding: .45rem .7rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  line-height: 1.5;
+  transition: background .2s, border-color .2s;
+}
+.aemet-indicator.loading  { background: #f0f9ff; color: #0369a1; border-color: #bae6fd; }
+.aemet-indicator.ok       { background: #ecfdf5; color: #065f46; border-color: #6ee7b7; }
+.aemet-indicator.fallback { background: #fefce8; color: #854d0e; border-color: #fde68a; }
+.aemet-indicator.error    { background: #fff1f2; color: #9f1239; border-color: #fda4af; }
+
+#day-of-week-hint {
+  font-size: .75rem;
+  color: var(--accent);
+  font-weight: 600;
+  margin-top: .2rem;
+}
 
 /* ── LEAFLET CUSTOM ──────────────────────────────────────── */
 .leaflet-popup-content-wrapper {

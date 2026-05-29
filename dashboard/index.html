@@ -145,6 +145,7 @@
           <h2>Añadir entrega para predecir</h2>
           <form id="delivery-form" class="delivery-form">
 
+            <!-- Fila 1: Ciudad + Tipo de zona -->
             <div class="form-row">
               <div class="form-group">
                 <label>Ciudad</label>
@@ -166,6 +167,7 @@
               </div>
             </div>
 
+            <!-- Fila 2: Tipo de producto + Fecha de entrega -->
             <div class="form-row">
               <div class="form-group">
                 <label>Tipo de producto</label>
@@ -178,71 +180,38 @@
                 </select>
               </div>
               <div class="form-group">
-                <label>Hora de entrega</label>
-                <input type="number" name="hour" min="0" max="23" value="10" required />
+                <label>Fecha de entrega</label>
+                <input type="date" name="delivery_date" id="delivery-date" required />
+                <span class="hint" id="day-of-week-hint"></span>
               </div>
             </div>
 
+            <!-- Fila 3: Hora + Peso -->
             <div class="form-row">
+              <div class="form-group">
+                <label>Hora de entrega</label>
+                <input type="number" name="hour" min="0" max="23" value="10" required />
+              </div>
               <div class="form-group">
                 <label>Peso (kg)</label>
                 <input type="number" name="weight_kg" min="0.1" step="0.1" value="2.5" required />
               </div>
-              <div class="form-group">
-                <label>Nº intentos previos</label>
-                <input type="number" name="num_previous_attempts" min="0" max="10" value="0" required />
-              </div>
             </div>
 
+            <!-- Fila 4: Carga del conductor -->
             <div class="form-row">
               <div class="form-group">
-                <label>Tasa fallo destinatario <span class="hint">(0–1)</span></label>
-                <input type="range" name="recipient_failure_rate" min="0" max="1" step="0.01" value="0.2"
-                       oninput="document.getElementById('rfr-val').textContent=parseFloat(this.value).toFixed(2)" />
-                <span class="range-val" id="rfr-val">0.20</span>
-              </div>
-              <div class="form-group">
-                <label>Calidad conductor <span class="hint">(0–1)</span></label>
-                <input type="range" name="driver_quality_score" min="0" max="1" step="0.01" value="0.75"
-                       oninput="document.getElementById('dqs-val').textContent=parseFloat(this.value).toFixed(2)" />
-                <span class="range-val" id="dqs-val">0.75</span>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Carga del conductor</label>
+                <label>Carga del conductor <span class="hint">(entregas asignadas)</span></label>
                 <input type="number" name="driver_delivery_load" min="1" max="60" value="20" required />
               </div>
-              <div class="form-group">
-                <label>Temperatura (°C)</label>
-                <input type="number" name="weather_temperature" min="-10" max="45" value="18" required />
+              <div class="form-group form-group--aemet">
+                <label>Condiciones meteorológicas</label>
+                <div id="aemet-indicator" class="aemet-indicator">Selecciona una ciudad para cargar datos AEMET</div>
               </div>
             </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label>Viento (km/h)</label>
-                <input type="number" name="weather_wind_speed" min="0" max="100" step="0.1" value="5" />
-              </div>
-              <div class="form-group">
-                <label>Día de la semana</label>
-                <select name="day_of_week">
-                  <option value="0">Lunes</option>
-                  <option value="1">Martes</option>
-                  <option value="2">Miércoles</option>
-                  <option value="3">Jueves</option>
-                  <option value="4">Viernes</option>
-                  <option value="5">Sábado</option>
-                  <option value="6">Domingo</option>
-                </select>
-              </div>
-            </div>
-
+            <!-- Checkboxes -->
             <div class="form-checkboxes">
-              <label class="checkbox-label">
-                <input type="checkbox" name="weather_rain" value="1" /> 🌧️ Lluvia
-              </label>
               <label class="checkbox-label">
                 <input type="checkbox" name="is_retry" value="1" /> 🔁 Es reintento
               </label>
@@ -253,13 +222,10 @@
                 <input type="checkbox" name="is_bulky" value="1" /> 📦 Voluminoso
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" name="requires_signature" value="1" /> ✍️ Firma
+                <input type="checkbox" name="requires_signature" value="1" /> ✍️ Firma requerida
               </label>
               <label class="checkbox-label">
                 <input type="checkbox" name="is_holiday" value="1" /> 🎉 Festivo
-              </label>
-              <label class="checkbox-label">
-                <input type="checkbox" name="use_aemet" value="1" /> 🌤️ Usar AEMET
               </label>
             </div>
 

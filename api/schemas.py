@@ -125,6 +125,41 @@ class AlertsResponse(BaseModel):
     alerts: list[AlertResult]
 
 
+class WeatherResponse(BaseModel):
+    city: str
+    weather_rain: int = Field(description="0 = sin lluvia, 1 = lluvia")
+    weather_rain_mm: float = Field(description="Precipitación en mm")
+    weather_wind_speed: float = Field(description="Velocidad del viento en m/s")
+    weather_temperature: float = Field(description="Temperatura en °C")
+    source: str = Field(description="aemet | fallback")
+
+
+class SaveDeliveryRequest(BaseModel):
+    delivery_id: str
+    date: str
+    hour: int
+    day_of_week: int
+    is_holiday: int
+    zone: str
+    zone_type: str
+    product_type: str
+    requires_signature: int
+    is_fragile: int
+    is_bulky: int
+    weight_kg: float
+    driver_delivery_load: int
+    is_retry: int
+    weather_rain: int
+    weather_wind_speed: float
+    weather_temperature: float
+
+
+class SaveDeliveryResponse(BaseModel):
+    saved: bool
+    delivery_id: str
+    csv_rows: int
+
+
 class HealthResponse(BaseModel):
     status: str
     model_loaded: bool
