@@ -12,13 +12,36 @@ let state = {
   counter: 1,
 };
 
+// ── PERSISTENCE ───────────────────────────────────────────
+const STORAGE_KEY = 'retailcore_predictions';
+
+function savePredictions() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.predictions));
+}
+
+function loadPredictions() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      state.predictions = JSON.parse(saved);
+      state.smsSent = new Set(state.predictions.filter(p => p._smsSent).map(p => p.delivery_id));
+    }
+  } catch (_) {}
+}
+
 // ── INIT ──────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  loadPredictions();
   setupTabs();
   setupForm();
   setupButtons();
   checkHealth();
   setDateBadge();
+  if (state.predictions.length) {
+    renderPanel(state.predictions);
+    updateStatsFromState();
+    refreshMap();
+  }
 });
 
 function setDateBadge() {
@@ -390,8 +413,9 @@ async function sendAndRender(deliveries, city, useAemet) {
       const original = deliveries.find(d => d.delivery_id === p.delivery_id) || {};
       return { ...p, ...original, prob_fallo: p.prob_fallo, risk_level: p.risk_level, action: p.action, shap_reason: p.shap_reason };
     });
-    state.predictions = enriched;
-    renderPanel(enriched);
+    state.predictions = [...state.predictions, ...enriched];
+    savePredictions();
+    renderPanel(state.predictions);
     updateStats(data);
     refreshMap();
   } catch (err) {
@@ -430,13 +454,39 @@ function renderPanel(enriched) {
         <td style="font-size:.75rem;max-width:200px">${reason}</td>
         <td><span class="action-chip">${humanAction(row.action)}</span></td>
         <td>${smsCellHtml}</td>
+        <td>
+          <button class="panel-edit-btn"   data-id="${escHtml(row.delivery_id)}" title="Editar">✏️</button>
+          <button class="panel-delete-btn" data-id="${escHtml(row.delivery_id)}" title="Eliminar">🗑️</button>
+        </td>
       </tr>
     `);
   });
 
-  // Wire SMS buttons
   tbody.querySelectorAll('.sms-btn').forEach(btn => {
     btn.addEventListener('click', () => simulateSms(btn.dataset.id));
+  });
+
+  tbody.querySelectorAll('.panel-delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.predictions = state.predictions.filter(p => p.delivery_id !== btn.dataset.id);
+      savePredictions();
+      renderPanel(state.predictions);
+      updateStatsFromState();
+      refreshMap();
+    });
+  });
+
+  tbody.querySelectorAll('.panel-edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = state.predictions.find(p => p.delivery_id === btn.dataset.id);
+      if (!row) return;
+      state.predictions = state.predictions.filter(p => p.delivery_id !== btn.dataset.id);
+      savePredictions();
+      renderPanel(state.predictions);
+      updateStatsFromState();
+      refreshMap();
+      fillFormWithDelivery(row);
+    });
   });
 }
 
@@ -495,6 +545,15 @@ function appendSmsLog(alert, row) {
 
 function updateSmsCount() {
   document.getElementById('stat-sms').textContent = state.smsSent.size;
+}
+
+function updateStatsFromState() {
+  const preds = state.predictions;
+  document.getElementById('stat-total').textContent  = preds.length;
+  document.getElementById('stat-high').textContent   = preds.filter(p => p.risk_level === 'HIGH').length;
+  document.getElementById('stat-medium').textContent = preds.filter(p => p.risk_level === 'MEDIUM').length;
+  document.getElementById('stat-low').textContent    = preds.filter(p => p.risk_level === 'LOW').length;
+  updateSmsCount();
 }
 
 // ── STATS ─────────────────────────────────────────────────

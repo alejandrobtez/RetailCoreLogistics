@@ -635,6 +635,20 @@ body {
   margin-top: .2rem;
 }
 
+/* ── PANEL ACTION BUTTONS ────────────────────────────────── */
+.panel-edit-btn, .panel-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: .85rem;
+  padding: .2rem .25rem;
+  border-radius: 4px;
+  transition: background .15s;
+  line-height: 1;
+}
+.panel-edit-btn:hover   { background: #dbeafe; }
+.panel-delete-btn:hover { background: #fee2e2; }
+
 /* ── LEAFLET CUSTOM ──────────────────────────────────────── */
 .leaflet-popup-content-wrapper {
   border-radius: var(--radius) !important;
